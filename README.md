@@ -1,13 +1,11 @@
-# AI CHATBOT CMS
-
-The AI chatbot will be white-labeled, allowing for full customization to meet the needs of any company. The chatbot will be integrated with Facebook Messenger, WhatsApp, and a custom chat window that can be embedded into company websites.
+# CAPN Nepal CMS
 
 ## Built with
 [![React][react-shields]][react-url] [![Vite][vite-shields]][vite-url] [![Typescript][typescript-shields]][typescript-url]
 
 ## Getting started
 
-Below are the steps to guide you through preparing your local enviroment for the AI CHATBOT CMS. Before diving into setup please look into the concept of [Github Sub Modules](https://github.blog/open-source/git/working-with-submodules/), [Docker Merge](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
+Below are the steps to guide you through preparing your local enviroment for the CMS. Before diving into setup please look into the concept of [Github Sub Modules](https://github.blog/open-source/git/working-with-submodules/), [Docker Merge](https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/).
 
 ### Prerequisites
 
@@ -22,16 +20,16 @@ To begin, ensure you have network access. Then, you'll need the following:
 
 Clone the repository using HTTPS, SSH, or Github CLI
 ```bash
-git clone https://github.com/toggle-corp/ai-chatbot-cms.git #HTTPS
-git clone git@github.com:toggle-corp/ai-chatbot-cms.git #SSH
-gh repo clone toggle-corp/ai-chatbot-cms #Github CLI
+git clone https://github.com/capn-nepal/website-cms.git #HTTPS
+git clone git@github.com:capn-nepal/website-cms.git #SSH
+gh repo clone capn-nepal/website-cms #Github CLI
 ```
-Download the contents of backend(ai-chatbot-backend)
+Download the contents of backend(website-backend)
 ```bash
 git submodule update --init --recursive
 ```
 Update Environment variables
-* create .env file and add COMPOSE_FILE variable for the ai-chatbot-cms
+* create .env file and add COMPOSE_FILE variable for the website-cms
 ```bash
 touch .env
 ```
@@ -40,7 +38,7 @@ touch .env
 cd backend
 cp env.example .env
 ```
-> NOTE: The backend has a higher priority than the ai-chatbot-cms. You can add backend environment variables in the CMS, but you must create a .env file in the backend for them to work.
+> NOTE: The backend has a higher priority than the website-cms. You can add backend environment variables in the CMS, but you must create a .env file in the backend for them to work.
 
 Build the docker image
 ```bash
@@ -64,7 +62,7 @@ Same steps upto downloading the contents of backend
 
 Update Enviroment variables
 
-* create .env file and add COMPOSE_FILE and other variable for the ai-chatbot-cms
+* create .env file and add COMPOSE_FILE and other variable for the website-cms
 ```bash
 touch .env
 ```
