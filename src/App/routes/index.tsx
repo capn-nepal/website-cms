@@ -68,6 +68,20 @@ const blogs = customWrapRoute({
     },
 });
 
+const login = customWrapRoute({
+    parent: rootLayout,
+    path: 'login',
+    component: {
+        render: () => import('#views/Login'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Login',
+        visibility: 'is-not-authenticated',
+    },
+});
+
 /*
 
 const contentManagement = customWrapRoute({
@@ -98,19 +112,6 @@ const userManagement = customWrapRoute({
     },
 });
 
-const login = customWrapRoute({
-    parent: rootLayout,
-    path: 'login',
-    component: {
-        render: () => import('#views/Login'),
-        props: {},
-    },
-    wrapperComponent: Auth,
-    context: {
-        title: 'Login',
-        visibility: 'is-not-authenticated',
-    },
-});
 const editProfile = customWrapRoute({
     parent: homeLayout,
     path: 'edit-profile',
@@ -229,7 +230,7 @@ const wrappedRoutes = {
     blogs,
     // contentManagement,
     // userManagement,
-    // login,
+    login,
     // userActivation,
     // editProfile,
     // forgotPassword,

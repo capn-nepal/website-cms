@@ -2,7 +2,7 @@ import { createContext } from 'react';
 
 import { MeQuery } from '#generated/types/graphql';
 
-export type UserAuth = NonNullable<NonNullable<MeQuery>['public']>['me'];
+export type UserAuth = NonNullable<NonNullable<MeQuery>>['me'];
 
 export interface UserContextProps {
     userAuth: UserAuth | undefined,
