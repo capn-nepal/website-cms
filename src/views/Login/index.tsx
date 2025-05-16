@@ -78,6 +78,7 @@ const formSchema: FormSchema = {
 
 const defaultFormValue: FormType = {};
 
+/** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
 export function Component() {
     const alert = useAlert();

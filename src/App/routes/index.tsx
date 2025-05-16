@@ -82,22 +82,21 @@ const login = customWrapRoute({
     },
 });
 
-/*
-
-const contentManagement = customWrapRoute({
+const events = customWrapRoute({
     parent: homeLayout,
-    path: 'content-management',
+    path: 'events',
     component: {
-        render: () => import('#views/ContentManagement'),
+        render: () => import('#views/Events'),
         props: {},
     },
     wrapperComponent: Auth,
     context: {
-        title: 'Content Management',
-        visibility: 'anything',
+        title: 'Event',
+        visibility: 'is-authenticated',
     },
 });
 
+/*
 const userManagement = customWrapRoute({
     parent: homeLayout,
     path: 'user-management',
@@ -228,8 +227,7 @@ const wrappedRoutes = {
     homeIndex,
     dashboard,
     blogs,
-    // contentManagement,
-    // userManagement,
+    events,
     login,
     // userActivation,
     // editProfile,

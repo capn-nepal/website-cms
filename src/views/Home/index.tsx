@@ -29,6 +29,12 @@ export function Component() {
                         >
                             Blogs
                         </NavigationTab>
+                        <NavigationTab
+                            to="events"
+                            icon={<IoGrid />}
+                        >
+                            Events
+                        </NavigationTab>
                     </>
                 )}
             >
