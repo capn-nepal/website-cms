@@ -103,15 +103,15 @@ export function Component() {
         {
             onCompleted: (loginResponse) => {
                 const response = loginResponse?.login;
-                if (!response) {
+                if (!response || !response.result) {
                     return;
                 }
 
                 if (response.ok) {
                     setUser({
-                        firstName: response.result?.firstName,
-                        lastName: response.result?.lastName,
-                        displayName: response.result?.displayName,
+                        id: response.result.id,
+                        firstName: response.result.firstName,
+                        lastName: response.result.lastName,
                         email: response.result?.email,
                     });
                     alert.show(
