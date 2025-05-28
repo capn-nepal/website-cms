@@ -1,7 +1,14 @@
 import {
     IoGrid,
+    IoImages,
     IoPerson,
 } from 'react-icons/io5';
+import {
+    MdDraw,
+    MdOutlineOndemandVideo,
+    MdSmartDisplay,
+} from 'react-icons/md';
+import { TbReportSearch } from 'react-icons/tb';
 import { Outlet } from 'react-router-dom';
 
 import Navbar from '#components/Navbar';
@@ -34,6 +41,36 @@ export function Component() {
                             icon={<IoGrid />}
                         >
                             Events
+                        </NavigationTab>
+                        <NavigationTab
+                            to="artWork"
+                            icon={<MdDraw />}
+                        >
+                            Artwork
+                        </NavigationTab>
+                        <NavigationTab
+                            to="gallery"
+                            icon={<IoImages />}
+                        >
+                            Gallery
+                        </NavigationTab>
+                        <NavigationTab
+                            to="podcast"
+                            icon={<MdOutlineOndemandVideo />}
+                        >
+                            Podcast
+                        </NavigationTab>
+                        <NavigationTab
+                            to="reports"
+                            icon={<TbReportSearch />}
+                        >
+                            Reports
+                        </NavigationTab>
+                        <NavigationTab
+                            to="youtubeVideos"
+                            icon={<MdSmartDisplay />}
+                        >
+                            Youtube Videos
                         </NavigationTab>
                     </>
                 )}

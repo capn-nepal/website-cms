@@ -104,27 +104,27 @@ export function Component() {
     ), [blogsResponse, page]);
 
     const columns = useMemo(() => ([
-        createStringColumn<BlogsItem, string>(
+        createStringColumn<BlogsItem, string| number>(
             'sn',
             'S.N',
             (item) => String(item.serialNumber),
         ),
-        createStringColumn<BlogsItem, string>(
+        createStringColumn<BlogsItem, string| number>(
             'title',
             'Title',
             (item) => item.title,
         ),
-        createStringColumn<BlogsItem, string>(
+        createStringColumn<BlogsItem, string| number>(
             'description',
             'Description',
             (item) => item.description,
         ),
-        createStringColumn<BlogsItem, string>(
+        createStringColumn<BlogsItem, string| number>(
             'author',
             'Author',
             (item) => item.author?.name,
         ),
-        createDateColumn<BlogsItem, string>(
+        createDateColumn<BlogsItem, string| number>(
             'publishedDate',
             'Published Date',
             (item) => item.publishedDate,

@@ -67,7 +67,74 @@ const blogs = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
+const artWork = customWrapRoute({
+    parent: homeLayout,
+    path: 'artWork',
+    component: {
+        render: () => import('#views/ArtWork'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'ArtWork',
+        visibility: 'is-authenticated',
+    },
+});
+const gallery = customWrapRoute({
+    parent: homeLayout,
+    path: 'gallery',
+    component: {
+        render: () => import('#views/Gallery'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Gallery',
+        visibility: 'is-authenticated',
+    },
+});
 
+const reports = customWrapRoute({
+    parent: homeLayout,
+    path: 'reports',
+    component: {
+        render: () => import('#views/Reports'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Reports',
+        visibility: 'is-authenticated',
+    },
+});
+
+const podcast = customWrapRoute({
+    parent: homeLayout,
+    path: 'podcast',
+    component: {
+        render: () => import('#views/Podcast'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Podcast',
+        visibility: 'is-authenticated',
+    },
+});
+
+const youtubeVideos = customWrapRoute({
+    parent: homeLayout,
+    path: 'youtubeVideos',
+    component: {
+        render: () => import('#views/YoutubeVideos'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'YoutubeVideos',
+        visibility: 'is-authenticated',
+    },
+});
 const login = customWrapRoute({
     parent: rootLayout,
     path: 'login',
@@ -229,6 +296,11 @@ const wrappedRoutes = {
     blogs,
     events,
     login,
+    artWork,
+    gallery,
+    reports,
+    podcast,
+    youtubeVideos,
     // userActivation,
     // editProfile,
     // forgotPassword,
