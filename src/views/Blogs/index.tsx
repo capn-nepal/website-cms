@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useMemo,
     useState,
 } from 'react';
@@ -14,6 +15,7 @@ import {
     createStringColumn,
     createYesNoColumn,
     Pager,
+    SelectInput,
     Table,
     TextInput,
 } from '@togglecorp/toggle-ui';
@@ -23,12 +25,17 @@ import { createElementColumn } from '#components/CreateElementColumn';
 import {
     BlogsQuery,
     BlogsQueryVariables,
+    BlogStatusEnum,
 } from '#generated/types/graphql';
+import useBooleanState from '#hooks/useBooleanState';
 import useFilterState from '#hooks/useFilterState';
+
+import BlogActions from './BlogAction';
+import BlogModal from './BlogModal';
 
 import styles from './styles.module.css';
 
-type BlogsItem = NonNullable<NonNullable<NonNullable<BlogsQuery>['blogs']>['results']>[number] & {serialNumber: string; };
+type BlogsItem = NonNullable<NonNullable<NonNullable<BlogsQuery>['blogs']>['results']>[number] & { serialNumber: string };
 
 const PAGE_SIZE = 10;
 
@@ -65,27 +72,51 @@ const BLOGS = gql`
     }
 `;
 
+const statusOptions: {
+    label: string;
+    status: BlogStatusEnum;
+}[] = [
+    { status: 'ARCHIVED', label: 'Archived' },
+    { status: 'DRAFT', label: 'Draft' },
+    { status: 'PUBLISHED', label: 'Published' },
+];
+
+const statusKeySelector = (option: { status: BlogStatusEnum }) => option.status;
+const statusLabelSelector = (option: { label: string }) => option.label;
+
 /** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
 export function Component() {
     const [page, setPage] = useState(1);
+    const [showBlogModal, {
+        setTrue: setShowBlogModalTrue,
+        setFalse: setShowBlogModalFalse,
+    }] = useBooleanState(false);
+
     const {
         filter,
         setFilterField,
     } = useFilterState<{
-        title?: string
+        title?: string;
+        status?: BlogStatusEnum;
     }>({
         filter: {},
         pageSize: PAGE_SIZE,
     });
+
+    const filters = filter.status
+        ? {
+            title: filter.title ? { contains: filter.title } : undefined,
+            status: filter.status,
+        }
+        : undefined;
+
     const variables = {
         pagination: {
             limit: PAGE_SIZE,
             offset: (page - 1) * PAGE_SIZE,
         },
-        filters: {
-            title: filter.title ? { contains: filter.title } : undefined,
-        },
+        filters,
     };
     const {
         data: blogsResponse,
@@ -103,33 +134,35 @@ export function Component() {
         })) as unknown as BlogsItem[]
     ), [blogsResponse, page]);
 
+    const handleDelete = useCallback(() => {}, []);
+
     const columns = useMemo(() => ([
-        createStringColumn<BlogsItem, string| number>(
+        createStringColumn<BlogsItem, string | number>(
             'sn',
             'S.N',
             (item) => String(item.serialNumber),
         ),
-        createStringColumn<BlogsItem, string| number>(
+        createStringColumn<BlogsItem, string | number>(
             'title',
             'Title',
             (item) => item.title,
         ),
-        createStringColumn<BlogsItem, string| number>(
+        createStringColumn<BlogsItem, string | number>(
             'description',
             'Description',
             (item) => item.description,
         ),
-        createStringColumn<BlogsItem, string| number>(
+        createStringColumn<BlogsItem, string | number>(
             'author',
             'Author',
             (item) => item.author?.name,
         ),
-        createDateColumn<BlogsItem, string| number>(
+        createDateColumn<BlogsItem, string | number>(
             'publishedDate',
             'Published Date',
             (item) => item.publishedDate,
         ),
-        createYesNoColumn<BlogsItem, boolean>(
+        createYesNoColumn<BlogsItem, string>(
             'featured',
             'Featured',
             (item) => item.featured,
@@ -144,8 +177,24 @@ export function Component() {
             ),
             (_key, item: BlogsItem) => ({ imageUrl: item.coverImage?.url }),
         ),
+        createElementColumn<BlogsItem, string, {
+            id: string;
+            onDelete:(
+                id: string,
+            ) => void;
+            blogId: string;
+                }>(
+                'actions',
+                'Actions',
+                BlogActions,
+                (_key, item) => ({
+                    id: item.id,
+                    blogId: item.id,
+                    onDelete: handleDelete,
+                }),
+                ),
 
-    ]), []);
+    ]), [handleDelete]);
 
     return (
         <Container
@@ -162,13 +211,22 @@ export function Component() {
                         value={filter.title}
                         name="title"
                     />
+                    <SelectInput
+                        placeholder="Status"
+                        name="status"
+                        options={statusOptions}
+                        keySelector={statusKeySelector}
+                        labelSelector={statusLabelSelector}
+                        value={filter.status}
+                        onChange={setFilterField}
+                    />
                 </div>
             )}
             actions={(
                 <Button
                     name="Add Event"
                     variant="primary"
-                    onClick={() => {}}
+                    onClick={setShowBlogModalTrue}
                     icons={<IoAdd />}
                 >
                     Add
@@ -192,6 +250,12 @@ export function Component() {
                 resizableColumn
                 fixedColumnWidth
             />
+            {showBlogModal && (
+                <BlogModal
+                    onClose={setShowBlogModalFalse}
+                />
+            )}
+
         </Container>
     );
 }

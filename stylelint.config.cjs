@@ -8,12 +8,6 @@ module.exports = {
         'stylelint-config-concentric',
     ],
     rules: {
-        'plugin/no-unused-selectors': {
-            suffixesToStrip: ['.module'],
-            documents: [
-                '{cssDir}/{cssName}.tsx',
-            ],
-        },
         'csstools/value-no-unknown-custom-properties': [
             true, {
                 importFrom: ['./src/index.css'],

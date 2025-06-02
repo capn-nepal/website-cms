@@ -7,13 +7,15 @@
             width: 100%!important;
         }
     }
+
     .actions{
         text-decoration: none;
         color: var(--cms-ui-primary-text-color);
+
         &:hover {
+            background-color: var(--cms-ui-color-background);
             text-decoration: underline;
             color: var(--cms-ui-color-blue-500);
-            background-color: var(--cms-ui-color-background);
         }
     }
 }
