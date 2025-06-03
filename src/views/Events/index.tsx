@@ -5,92 +5,126 @@ import {
 } from 'react';
 import { IoAdd } from 'react-icons/io5';
 import {
+    gql,
+    useQuery,
+} from '@apollo/client';
+import {
     Button,
     createDateColumn,
     createStringColumn,
     Pager,
+    SelectInput,
     Table,
 } from '@togglecorp/toggle-ui';
 
-import Chip from '#components/Chip';
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
+import {
+    EventsQuery,
+    EventsQueryVariables,
+} from '#generated/types/graphql';
 import useBooleanState from '#hooks/useBooleanState';
+import useFilterState from '#hooks/useFilterState';
 
 import EventActions from './EventActions';
 import EventModal from './EventModal';
 
 import styles from './styles.module.css';
 
-type EventItem = {
-    id: string;
-    name: string;
-    description: string;
-    location?: string;
-    startDate: string;
-    endDate: string;
-    eventImage?: string;
-};
-
-const dummyEvents: EventItem[] = [
-    {
-        id: '1',
-        name: 'Disaster Preparedness Workshop',
-        description: 'Training session on community resilience',
-        location: 'Kathmandu',
-        startDate: '2025-05-20T10:00:00Z',
-        endDate: '2025-05-21T15:00:00Z',
-    },
-    {
-        id: '2',
-        name: 'Relief Distribution Planning',
-        description: 'Meeting for logistics planning',
-        location: 'Lalitpur',
-        startDate: '2025-06-01T09:30:00Z',
-        endDate: '2025-06-01T12:00:00Z',
-    },
-    {
-        id: '3',
-        name: 'Flood Awareness Campaign',
-        description: 'Community outreach on flood risk',
-        location: 'Jhapa',
-        startDate: '2025-06-15T08:00:00Z',
-        endDate: '2025-06-15T17:00:00Z',
-    },
-];
+type EventItem = NonNullable<EventsQuery['events']['results'][number]>;
 
 const PAGE_SIZE = 10;
+const statusOption = [
+    { isActive: true, label: 'true' },
+    { isActive: false, label: 'false' },
+];
 
-type PartialFormType = Partial<EventItem>;
 const keySelector = (item: EventItem) => item.id;
+
+const statusKeySelector = (option: { isActive: boolean; label: string }) => String(option.isActive);
+const statusLabelSelector = (option: { isActive: boolean; label: string }) => String(option.label);
+
+const EVENTS = gql`
+    query Events(
+        $pagination:OffsetPaginationInput ,
+        $filters: EventFilter,
+        $order: EventOrder
+        ) {
+        events(order: $order, pagination: $pagination, filters: $filters) {
+            pageInfo {
+                limit
+                offset
+            }
+            results {
+                description
+                endDate
+                id
+                location
+                name
+                startDate
+            }
+            totalCount
+        }
+    }
+`;
 
 /** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
 export function Component() {
     const [page, setPage] = useState(1);
     const [
-        selectedEvent,
-        setSelectedEvent,
-    ] = useState<string | undefined>();
+        showEventModal, {
+            setTrue: setShowEventModalTrue,
+            setFalse: setShowEventModalFalse,
+        }] = useBooleanState(false);
 
-    const defaultFormValues: PartialFormType = {};
-    console.log('here', selectedEvent);
+    const {
+        filter,
+        setFilterField,
+    } = useFilterState<{
+        isDeleted?: boolean;
+    }>({
+        filter: {},
+        pageSize: PAGE_SIZE,
+    });
 
-    const [showEventModal, {
-        setTrue: setShowEventModalTrue,
-        setFalse: setShowEventModalFalse,
-    }] = useBooleanState(false);
+    const variables = {
+        pagination: {
+            limit: PAGE_SIZE,
+            offset: (page - 1) * PAGE_SIZE,
+        },
+        filters: {
+            isDeleted: filter.isDeleted ?? false, // FIXME: update after server side is fixed
+        },
+    };
+    const {
+        data: eventsResponse,
+    } = useQuery<EventsQuery, EventsQueryVariables>(
+        EVENTS,
+        { variables },
+    );
 
-    const handleDelete = useCallback((id: string) => {
-        console.log('Delete item with id:', id);
-    }, []);
+    const onChange = useCallback(
+        (newValue: string | undefined) => {
+            let isDeleted;
+            if (newValue === 'true') {
+                isDeleted = true;
+            } else if (newValue === 'false') {
+                isDeleted = false;
+            } else {
+                isDeleted = undefined;
+            }
 
-    const handleEdit = useCallback((id: string) => {
-        setSelectedEvent(id);
-        setShowEventModalTrue();
-    }, [setShowEventModalTrue]);
+            setFilterField(isDeleted, 'isDeleted');
+        },
+        [setFilterField],
+    );
 
-    const columns = useMemo(() => ([
+    const handleDelete = useCallback(() => {}, []);
+
+    const data = eventsResponse?.events.results;
+
+    const columns = useMemo(() => [
         createStringColumn<EventItem, string | number>(
             'name',
             'Event Name',
@@ -116,39 +150,28 @@ export function Component() {
             'End Date',
             (item) => item.endDate,
         ),
-        createElementColumn<EventItem, string, { imageUrl?: string }>(
-            'image',
-            'Image',
-            ({ imageUrl }) => (
-                imageUrl
-                    ? <img src={imageUrl} alt="event" style={{ width: 40, height: 40, borderRadius: 4 }} />
-                    : <Chip label="No Image" variant="default" />
+        createElementColumn<EventItem, string, { id: string; onDelete:(
+            id: string) => void }>(
+            'actions',
+            'Actions',
+            EventActions,
+            (_key, item) => ({
+                id: item.id,
+                onDelete: handleDelete,
+            }),
             ),
-            (_key, item) => ({ imageUrl: item.eventImage }),
-        ),
-        createElementColumn<EventItem, string, {
-            id: string;
-            onDelete:(
-                id: string,
-            ) => void;
-            onEdit: () => void;
-            eventId: string;
-                }>(
-                'actions',
-                'Actions',
-                EventActions,
-                (_key, item) => ({
-                    id: item.id,
-                    onEdit: () => handleEdit(item.id),
-                    onDelete: handleDelete,
-                    eventId: item.id,
-                }),
-                { columnClassName: styles.actions },
-                ),
-    ]), [
-        handleDelete,
-        handleEdit,
-    ]);
+        // createElementColumn<EventItem, string, { imageUrl?: string }>(
+        //     'image',
+        //     'Image',
+        //     ({ imageUrl }) => (
+        //         imageUrl
+        //             ? <img src={imageUrl} alt="event"
+        // style={{ width: 40, height: 40, borderRadius: 4 }} />
+        //             : <Chip label="No Image" variant="default" />
+        //     ),
+        //     (_key, item) => ({ imageUrl: item.location}),
+        // ),
+    ], [handleDelete]);
 
     return (
         <Container
@@ -157,6 +180,19 @@ export function Component() {
             showHeader
             headingLevel={6}
             heading="Event Table"
+            headingDescription={(
+                <div className={styles.actions}>
+                    <SelectInput
+                        placeholder="Is Deleted"
+                        name="isDeleted"
+                        options={statusOption}
+                        keySelector={statusKeySelector}
+                        labelSelector={statusLabelSelector}
+                        value={filter.isDeleted !== undefined ? String(filter.isDeleted) : null}
+                        onChange={onChange}
+                    />
+                </div>
+            )}
             actions={(
                 <Button
                     name="Add Event"
@@ -171,7 +207,7 @@ export function Component() {
                 <Pager
                     activePage={page}
                     onActivePageChange={setPage}
-                    itemsCount={dummyEvents.length}
+                    itemsCount={eventsResponse?.events.totalCount ?? 0}
                     maxItemsPerPage={PAGE_SIZE}
                     onItemsPerPageChange={setPage}
                 />
@@ -179,15 +215,13 @@ export function Component() {
         >
             {showEventModal && (
                 <EventModal
-                    event={defaultFormValues}
                     onClose={setShowEventModalFalse}
-                    onSuccess={undefined}
                 />
             )}
             <Table
                 className={styles.table}
                 keySelector={keySelector}
-                data={dummyEvents}
+                data={data}
                 columns={columns}
                 resizableColumn
                 fixedColumnWidth

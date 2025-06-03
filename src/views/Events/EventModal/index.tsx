@@ -1,8 +1,8 @@
+import { useCallback } from 'react';
 import {
-    useCallback,
-    useMemo,
-} from 'react';
-import { isDefined } from '@togglecorp/fujs';
+    gql,
+    useMutation,
+} from '@apollo/client';
 import {
     createSubmitHandler,
     getErrorObject,
@@ -18,25 +18,70 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import {
+    AddEventMutation,
+    AddEventMutationVariables,
+    CreateEventInput,
+    EventTypeMutationResponseType,
+} from '#generated/types/graphql';
+import useAlert from '#hooks/useAlert';
+
 import styles from './styles.module.css';
 
-type EventItem = {
-    id?: string;
-    name: string;
-    description: string;
-    location?: string;
-    startDate: string;
-    endDate: string;
-    eventImage?: string;
-};
+const CREATE_EVENT = gql`
+    mutation CreateEvent($data: CreateEventInput!) {
+        createEvent(data: $data) {
+            ... on EventTypeMutationResponseType {
+                errors
+                ok
+                result {
+                    id
+                    name
+                    description
+                    location
+                    startDate
+                    endDate
+                }
+            }
+            ... on OperationInfo {
+                __typename
+                messages {
+                    message
+                }
+            }
+        }
+    }
+`;
 
+// const UPDATE_EVENT = gql`
+//     mutation UpdateEvent($pk: ID!, $data: UpdateEventInput!) {
+//         updateEvent(pk: $pk, data: $data) {
+//             ... on EventTypeMutationResponseType {
+//                 errors
+//                 ok
+//                 result {
+//                     id
+//                     name
+//                     description
+//                     location
+//                     startDate
+//                     endDate
+//                 }
+//             }
+//             ... on OperationInfo {
+//                 __typename
+//                 messages {
+//                     message
+//                 }
+//             }
+//         }
+//     }
+// `;
 interface Props {
     onClose: () => void;
-    event?: Partial<EventItem>;
-    onSuccess?: () => void;
 }
 
-type PartialFormType = Partial<EventItem>;
+type PartialFormType = Partial<CreateEventInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
@@ -59,26 +104,17 @@ const formSchema: FormSchema = {
             required: true,
             requiredValidation: requiredStringCondition,
         },
-        eventImage: {},
+        // eventImage: {},
     }),
 };
 
 function EventModal(props: Props) {
     const {
         onClose,
-        event,
-        onSuccess,
     } = props;
+    const alert = useAlert();
 
-    const defaultFormValues = useMemo<PartialFormType>(() => ({
-        id: event?.id,
-        name: event?.name ?? '',
-        description: event?.description ?? '',
-        location: event?.location ?? '',
-        startDate: event?.startDate ?? '',
-        endDate: event?.endDate ?? '',
-        eventImage: event?.eventImage ?? '',
-    }), [event]);
+    const defaultFormValues: PartialFormType = {};
 
     const {
         value,
@@ -89,30 +125,61 @@ function EventModal(props: Props) {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
-    const handleSubmitSuccess = useCallback((formValues: PartialFormType) => {
-        console.info('Form submitted:', formValues);
-
-        if (onSuccess) {
-            onSuccess();
-        }
-
-        onClose();
-    }, [onClose, onSuccess]);
+    const [
+        addEventsTrigger,
+        { loading: addEventLoading },
+    ] = useMutation<AddEventMutation, AddEventMutationVariables>(
+        CREATE_EVENT,
+        {
+            onCompleted: (response) => {
+                const archiveEvent = response.createEvent as EventTypeMutationResponseType;
+                const { ok, errors } = archiveEvent;
+                if (errors) {
+                    const errorMessages = errors
+                        ?.map((message: { messages: string; }) => message.messages)
+                        .filter((msg: string) => msg)
+                        .join(', ');
+                    alert.show(errorMessages);
+                } else if (ok) {
+                    alert.show(
+                        'Event Successfully created',
+                        { variant: 'success' },
+                    );
+                    onClose();
+                }
+            },
+            onError: () => {
+                alert.show(
+                    'Failed to Create an Event',
+                    { variant: 'danger' },
+                );
+            },
+        },
+    );
+    const handleAddEventSubmit = useCallback((finalValue: PartialFormType) => {
+        addEventsTrigger({
+            variables: {
+                data: {
+                    ...finalValue,
+                } as unknown as CreateEventInput,
+            },
+        });
+    }, [addEventsTrigger]);
 
     const handleSubmit = useCallback(() => {
         createSubmitHandler(
             validate,
             setError,
-            handleSubmitSuccess,
+            handleAddEventSubmit,
         )();
-    }, [validate, setError, handleSubmitSuccess]);
+    }, [validate, setError, handleAddEventSubmit]);
 
     const error = getErrorObject(formError);
 
     return (
         <Modal
             className={styles.eventModal}
-            heading={isDefined(event?.id) ? 'Edit Event' : 'Add Event'}
+            heading="Add Event"
             onClose={onClose}
             size="medium"
             footer={(
@@ -121,6 +188,7 @@ function EventModal(props: Props) {
                         name="cancel"
                         variant="default"
                         onClick={onClose}
+                        disabled={pristine || addEventLoading}
                     >
                         Cancel
                     </Button>
@@ -128,7 +196,7 @@ function EventModal(props: Props) {
                         name="save"
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={pristine}
+                        disabled={pristine || addEventLoading}
                     >
                         Save
                     </Button>
@@ -161,23 +229,23 @@ function EventModal(props: Props) {
                 label="Start Date"
                 name="startDate"
                 value={value.startDate}
-                error={error?.startDate}
+                error={typeof error?.startDate === 'string' ? error.startDate : undefined}
                 onChange={setFieldValue}
             />
             <DateInput
                 label="End Date"
                 name="endDate"
                 value={value.endDate}
-                error={error?.endDate}
+                error={typeof error?.endDate === 'string' ? error.endDate : undefined}
                 onChange={setFieldValue}
             />
-            <TextInput
+            {/* <TextInput
                 label="Image URL"
                 name="eventImage"
                 value={value.eventImage}
                 error={error?.eventImage}
                 onChange={setFieldValue}
-            />
+            /> */}
         </Modal>
     );
 }
