@@ -121,6 +121,7 @@ export function Component() {
     );
 
     const handleDelete = useCallback(() => {}, []);
+    const handleEdit = useCallback(() => {}, []);
 
     const data = eventsResponse?.events.results;
 
@@ -158,6 +159,7 @@ export function Component() {
             (_key, item) => ({
                 id: item.id,
                 onDelete: handleDelete,
+                onEdit: handleEdit,
             }),
             ),
         // createElementColumn<EventItem, string, { imageUrl?: string }>(
@@ -171,7 +173,7 @@ export function Component() {
         //     ),
         //     (_key, item) => ({ imageUrl: item.location}),
         // ),
-    ], [handleDelete]);
+    ], [handleDelete, handleEdit]);
 
     return (
         <Container
@@ -216,6 +218,7 @@ export function Component() {
             {showEventModal && (
                 <EventModal
                     onClose={setShowEventModalFalse}
+                    title="Add Event"
                 />
             )}
             <Table

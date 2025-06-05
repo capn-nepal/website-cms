@@ -15,6 +15,9 @@ import {
     EventTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import useBooleanState from '#hooks/useBooleanState';
+
+import EventModal from '../EventModal';
 
 import styles from './styles.module.css';
 
@@ -54,6 +57,13 @@ function EventActions(props: Props) {
         onDelete,
     } = props;
     const alert = useAlert();
+
+    const [
+        showEditEventModal, {
+            setTrue: setShowEditEventModalTrue,
+            setFalse: setShowEditEventModalFalse,
+        }] = useBooleanState(false);
+
     const [
         triggerArchiveEvent,
         { loading: archiveLoading },
@@ -87,24 +97,22 @@ function EventActions(props: Props) {
     );
 
     const handleDelete = useCallback(() => {
+        triggerArchiveEvent({ variables: { pk: id } });
+    }, [triggerArchiveEvent, id]);
+
+    const handleEdit = useCallback(() => {
         if (!id) {
             alert.show('Invalid event ID');
             return;
         }
-        triggerArchiveEvent({ variables: { pk: id } });
-    }, [triggerArchiveEvent, id, alert]);
-
-    // const handleEdit = useCallback(() => {
-    //     if (onEdit) {
-    //         onEdit(eventId);
-    //     }
-    // }, [onEdit, eventId]);
+        setShowEditEventModalTrue();
+    }, [id, alert, setShowEditEventModalTrue]);
 
     return (
         <div className={styles.eventActions}>
             <Button
                 name="edit"
-                onClick={() => {}}
+                onClick={handleEdit}
                 title="Edit"
                 transparent
             >
@@ -119,6 +127,13 @@ function EventActions(props: Props) {
             >
                 <IoTrash />
             </Button>
+            {showEditEventModal && (
+                <EventModal
+                    onClose={setShowEditEventModalFalse}
+                    title="Edit Event"
+                    initialValues={{ id }}
+                />
+            )}
         </div>
     );
 }
