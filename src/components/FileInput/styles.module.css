@@ -1,0 +1,14 @@
+.input-container {
+    .input-section {
+        background-color: var(--cms-ui-color-gray-20);
+
+        .input-children {
+            display: flex;
+            align-items: start;
+            gap: var(--cms-ui-spacing-lg);
+        }
+        .input {
+            visibility: hidden;
+        }
+    }
+}

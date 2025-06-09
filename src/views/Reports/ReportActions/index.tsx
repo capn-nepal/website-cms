@@ -13,6 +13,7 @@ import {
     ArchiveReportMutation,
     ArchiveReportMutationVariables,
     ReportTypeMutationResponseType,
+    StatusEnum,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
@@ -22,8 +23,17 @@ import ReportModal from '../ReportsModal';
 import styles from './styles.module.css';
 
 interface Props {
-    id: string;
-    onDelete: (id: string) => void;
+        report: {
+            id: string;
+            title: string;
+            description: string;
+            publishedDate: string;
+            status:StatusEnum;
+            reportFile: {
+                url: string;
+            } | null;
+        };
+        onEdit: (report: Props['report']) => void;
 }
 
 const ARCHIVE_REPORT = gql`
@@ -55,8 +65,8 @@ const ARCHIVE_REPORT = gql`
 `;
 function ReportActions(props: Props) {
     const {
-        id,
-        onDelete,
+        report,
+        onEdit,
     } = props;
     const alert = useAlert();
 
@@ -86,7 +96,6 @@ function ReportActions(props: Props) {
                         'Successfully Archived the Report',
                         { variant: 'success' },
                     );
-                    onDelete(id);
                 }
             },
             onError: () => {
@@ -97,31 +106,18 @@ function ReportActions(props: Props) {
             },
         },
     );
-
     const handleDelete = useCallback(() => {
-        if (!id) {
-            alert.show('Invalid report ID');
-            return;
-        }
-        triggerArchiveReport({ variables: { pk: id } });
-    }, [triggerArchiveReport, id, alert]);
+        triggerArchiveReport({ variables: { pk: report.id } });
+    }, [triggerArchiveReport, report.id]);
 
     const handleEdit = useCallback(() => {
-        if (!id) {
-            alert.show('Invalid report ID');
+        if (!report || !report.id) {
+            alert.show('Invalid event data');
             return;
         }
         setShowEditReportModalTrue();
-    }, [id, alert, setShowEditReportModalTrue]);
-
-    const initialValues = {
-        id,
-        title: '',
-        description: '',
-        publishedDate: '',
-        status: '',
-        reportFile: undefined,
-    };
+        onEdit(report);
+    }, [report, alert, setShowEditReportModalTrue, onEdit]);
 
     return (
         <div className={styles.reportActions}>
@@ -146,7 +142,7 @@ function ReportActions(props: Props) {
                 <ReportModal
                     onClose={setShowEditReportModalFalse}
                     title="Edit Report"
-                    initialValues={initialValues}
+                    initialValues={report}
                 />
             )}
         </div>

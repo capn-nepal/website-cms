@@ -244,6 +244,8 @@ export function Component() {
             setTrue: setShowReportModalTrue,
             setFalse: setShowReportModalFalse,
         }] = useBooleanState(false);
+    const [selectedReport, setSelectedReport] = useState<Partial<ReportsItem> | null>(null);
+
     const {
         filter,
         setFilterField,
@@ -292,6 +294,10 @@ export function Component() {
         },
         [setFilterField],
     );
+    const handleAddReport = useCallback(() => {
+        setSelectedReport(null);
+        setShowReportModalTrue();
+    }, [setShowReportModalTrue]);
 
     const data = reportsResponse?.reports.results;
 
@@ -342,11 +348,10 @@ export function Component() {
             'Actions',
             ReportActions,
             (_key, item) => ({
-                id: item.id,
-                onDelete: handleIsDeletedChange,
+                report: item,
             }),
             ),
-    ]), [handleIsDeletedChange]);
+    ]), []);
 
     return (
         <Container
@@ -381,7 +386,7 @@ export function Component() {
                 <Button
                     name="Add Reports"
                     variant="primary"
-                    onClick={setShowReportModalTrue}
+                    onClick={handleAddReport}
                     icons={<IoAdd />}
                 >
                     Add
@@ -408,7 +413,7 @@ export function Component() {
             {showReportModal && (
                 <ReportModal
                     onClose={setShowReportModalFalse}
-                    title="Add Report"
+                    title={selectedReport ? 'Edit Report' : 'Add Report'}
                 />
             )}
         </Container>

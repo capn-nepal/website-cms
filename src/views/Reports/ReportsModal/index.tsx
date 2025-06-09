@@ -22,6 +22,7 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import FileInput from '#components/FileInput';
 import {
     CreateReportInput,
     CreateReportMutation,
@@ -94,7 +95,7 @@ const UPDATE_REPORT = gql`
 interface Props {
     onClose: () => void;
     title: string;
-    initialValues?: Partial<CreateReportInput & { id: string }>;
+    initialValues?: Partial<UpdateReportInput & { id: string }>;
 }
 
 const statusOptions = [
@@ -139,16 +140,16 @@ function ReportModal(props: Props) {
     } = props;
     const alert = useAlert();
 
-    const defaultFormValues: PartialFormType = initialValues || {
-        title: '',
-        description: '',
-        publishedDate: '',
-        status: 'DRAFT',
-        reportFile: undefined,
+    const defaultFormValues: Partial<CreateReportInput> = {
+        title: initialValues?.title || '',
+        description: initialValues?.description || '',
+        publishedDate: initialValues?.publishedDate,
+        status: initialValues?.status,
+        reportFile: initialValues?.reportFile,
     };
 
-    const [filePreview, setFilePreview] = useState<string | undefined>(
-        initialValues?.reportFile ? initialValues.reportFile : undefined,
+    const [filePreview, setFilePreview] = useState<File | null>(
+        initialValues?.reportFile ? initialValues.reportFile : null,
     );
 
     const {
@@ -222,19 +223,6 @@ function ReportModal(props: Props) {
                 );
             },
         },
-    );
-
-    const handleFileChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const uploadedFile = e.target.files?.[0] ?? null;
-            setFieldValue(uploadedFile, 'reportFile');
-            if (uploadedFile) {
-                setFilePreview(uploadedFile.name);
-            } else {
-                setFilePreview(undefined);
-            }
-        },
-        [setFieldValue],
     );
 
     const handleSubmit = useCallback(() => {
@@ -323,24 +311,17 @@ function ReportModal(props: Props) {
                 keySelector={keySelector}
                 labelSelector={labelSelector}
             />
-            <div>
-                <div>Report File</div>
-                <input
-                    type="file"
-                    id="reportFile"
-                    name="reportFile"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                    onChange={handleFileChange}
-                />
-                {filePreview && (
-                    <div>
-                        Selected file:
-                        {filePreview}
-                    </div>
-                )}
-                {error?.reportFile && typeof error.reportFile === 'string'
-                 && <div>{error.reportFile}</div>}
-            </div>
+            <FileInput
+                label="Report File"
+                name="reportFile"
+                value={filePreview}
+                onChange={(file, name) => {
+                    setFieldValue(file, name);
+                    setFilePreview(file || null);
+                }}
+            >
+                Choose a File
+            </FileInput>
         </Modal>
     );
 }
