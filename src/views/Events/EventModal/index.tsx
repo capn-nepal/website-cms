@@ -141,7 +141,7 @@ function EventModal(props: Props) {
     const [
         addEventsTrigger,
         { loading: addEventLoading },
-    ] = useMutation< CreateEventMutation, CreateEventMutationVariables>(
+    ] = useMutation<CreateEventMutation, CreateEventMutationVariables>(
         CREATE_EVENT,
         {
             onCompleted: (response) => {
@@ -207,18 +207,11 @@ function EventModal(props: Props) {
                         pk: initialValues.id,
                         data: finalValue as UpdateEventInput,
                     },
-                    context: {
-                        hasUpload: true,
-                    },
+
                 });
             } else {
                 addEventsTrigger({
-                    variables: {
-                        data: finalValue as CreateEventInput,
-                    },
-                    context: {
-                        hasUpload: true,
-                    },
+                    variables: { data: finalValue as CreateEventInput },
                 });
             }
         },
@@ -294,13 +287,6 @@ function EventModal(props: Props) {
                 error={typeof error?.endDate === 'string' ? error.endDate : undefined}
                 onChange={setFieldValue}
             />
-            {/* <TextInput
-                label="Image URL"
-                name="eventImage"
-                value={value.eventImage}
-                error={error?.eventImage}
-                onChange={setFieldValue}
-            /> */}
         </Modal>
     );
 }

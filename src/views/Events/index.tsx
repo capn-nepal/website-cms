@@ -78,6 +78,8 @@ export function Component() {
             setFalse: setShowEventModalFalse,
         }] = useBooleanState(false);
 
+    const [selectedEvent, setSelectedEvent] = useState<Partial<EventItem> | null>(null);
+
     const {
         filter,
         setFilterField,
@@ -120,8 +122,10 @@ export function Component() {
         [setFilterField],
     );
 
-    const handleDelete = useCallback(() => {}, []);
-    const handleEdit = useCallback(() => {}, []);
+    const handleAddEvent = useCallback(() => {
+        setSelectedEvent(null);
+        setShowEventModalTrue();
+    }, [setShowEventModalTrue]);
 
     const data = eventsResponse?.events.results;
 
@@ -151,29 +155,17 @@ export function Component() {
             'End Date',
             (item) => item.endDate,
         ),
-        createElementColumn<EventItem, string, { id: string; onDelete:(
-            id: string) => void }>(
+        createElementColumn<
+            EventItem,
+            string,
+            { event: EventItem; }
+        >(
             'actions',
             'Actions',
             EventActions,
-            (_key, item) => ({
-                id: item.id,
-                onDelete: handleDelete,
-                onEdit: handleEdit,
-            }),
-            ),
-        // createElementColumn<EventItem, string, { imageUrl?: string }>(
-        //     'image',
-        //     'Image',
-        //     ({ imageUrl }) => (
-        //         imageUrl
-        //             ? <img src={imageUrl} alt="event"
-        // style={{ width: 40, height: 40, borderRadius: 4 }} />
-        //             : <Chip label="No Image" variant="default" />
-        //     ),
-        //     (_key, item) => ({ imageUrl: item.location}),
-        // ),
-    ], [handleDelete, handleEdit]);
+            (_key, item) => ({ event: item }),
+        ),
+    ], []);
 
     return (
         <Container
@@ -199,7 +191,7 @@ export function Component() {
                 <Button
                     name="Add Event"
                     variant="primary"
-                    onClick={setShowEventModalTrue}
+                    onClick={handleAddEvent}
                     icons={<IoAdd />}
                 >
                     Add
@@ -218,7 +210,8 @@ export function Component() {
             {showEventModal && (
                 <EventModal
                     onClose={setShowEventModalFalse}
-                    title="Add Event"
+                    title={selectedEvent ? 'Edit Event' : 'Add Event'}
+                    initialValues={selectedEvent || undefined}
                 />
             )}
             <Table

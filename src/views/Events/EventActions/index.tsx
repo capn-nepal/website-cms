@@ -22,8 +22,15 @@ import EventModal from '../EventModal';
 import styles from './styles.module.css';
 
 interface Props {
-    id: string;
-    onDelete: (id: string) => void;
+    event: {
+        id: string;
+        name: string;
+        description: string;
+        location?: string | null;
+        startDate: string;
+        endDate: string;
+    };
+    onEdit?: (event: Props['event']) => void;
 }
 
 const ARCHIVE_EVENT = gql`
@@ -50,12 +57,8 @@ const ARCHIVE_EVENT = gql`
         }
     }
 `;
-
 function EventActions(props: Props) {
-    const {
-        id,
-        onDelete,
-    } = props;
+    const { event, onEdit } = props;
     const alert = useAlert();
 
     const [
@@ -75,21 +78,20 @@ function EventActions(props: Props) {
                 const { ok, errors } = archiveEvent;
                 if (errors) {
                     const errorMessages = errors
-                        ?.map((message: { messages: string; }) => message.messages)
+                        ?.map((message: { messages: string }) => message.messages)
                         .filter((msg: string) => msg)
                         .join(', ');
                     alert.show(errorMessages);
                 } else if (ok) {
                     alert.show(
-                        'Successfully Archived the Content',
+                        'Successfully archived the event',
                         { variant: 'success' },
                     );
-                    onDelete(id);
                 }
             },
             onError: () => {
                 alert.show(
-                    'Failed to Archive the Content',
+                    'Failed to archive the event',
                     { variant: 'danger' },
                 );
             },
@@ -97,16 +99,19 @@ function EventActions(props: Props) {
     );
 
     const handleDelete = useCallback(() => {
-        triggerArchiveEvent({ variables: { pk: id } });
-    }, [triggerArchiveEvent, id]);
+        triggerArchiveEvent({ variables: { pk: event.id } });
+    }, [triggerArchiveEvent, event.id]);
 
     const handleEdit = useCallback(() => {
-        if (!id) {
-            alert.show('Invalid event ID');
+        if (!event || !event.id) {
+            alert.show('Invalid event data');
             return;
         }
         setShowEditEventModalTrue();
-    }, [id, alert, setShowEditEventModalTrue]);
+        if (onEdit) {
+            onEdit(event);
+        }
+    }, [event, alert, setShowEditEventModalTrue, onEdit]);
 
     return (
         <div className={styles.eventActions}>
@@ -131,11 +136,10 @@ function EventActions(props: Props) {
                 <EventModal
                     onClose={setShowEditEventModalFalse}
                     title="Edit Event"
-                    initialValues={{ id }}
+                    initialValues={event}
                 />
             )}
         </div>
     );
 }
-
 export default EventActions;
