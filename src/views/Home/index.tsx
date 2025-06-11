@@ -55,10 +55,16 @@ export function Component() {
                             Gallery
                         </NavigationTab>
                         <NavigationTab
-                            to="podcast"
+                            to="podcastSeasons"
                             icon={<MdOutlineOndemandVideo />}
                         >
-                            Podcast
+                            Podcast seasons
+                        </NavigationTab>
+                        <NavigationTab
+                            to="podcastEpisode"
+                            icon={<MdOutlineOndemandVideo />}
+                        >
+                            Podcast Episode
                         </NavigationTab>
                         <NavigationTab
                             to="reports"
