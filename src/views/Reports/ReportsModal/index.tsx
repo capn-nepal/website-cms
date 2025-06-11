@@ -28,6 +28,7 @@ import {
     CreateReportMutation,
     CreateReportMutationVariables,
     ReportTypeMutationResponseType,
+    StatusEnum,
     UpdateReportInput,
     UpdateReportMutation,
     UpdateReportMutationVariables,
@@ -97,17 +98,19 @@ interface Props {
     title: string;
     initialValues?: Partial<UpdateReportInput & { id: string }>;
 }
-
-const statusOptions = [
-    { key: 'DRAFT', label: 'Draft' },
-    { key: 'PUBLISHED', label: 'Published' },
+const statusOptions: {
+    label: string;
+    status: StatusEnum;
+}[] = [
+    { status: 'DRAFT', label: 'Draft' },
+    { status: 'PUBLISHED', label: 'Published' },
 ];
 
 type PartialFormType = Partial<CreateReportInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
-const keySelector = (option: { key: string }) => option.key;
+const keySelector = (option: { status: StatusEnum }) => option.status;
 const labelSelector = (option: { label: string }) => option.label;
 
 const formSchema: FormSchema = {
@@ -143,7 +146,7 @@ function ReportModal(props: Props) {
     const defaultFormValues: Partial<CreateReportInput> = {
         title: initialValues?.title || '',
         description: initialValues?.description || '',
-        publishedDate: initialValues?.publishedDate,
+        publishedDate: initialValues?.publishedDate || undefined,
         status: initialValues?.status,
         reportFile: initialValues?.reportFile,
     };
