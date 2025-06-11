@@ -139,8 +139,8 @@ importers:
         specifier: ^14.0.0
         version: 14.0.1(stylelint@16.19.1(typescript@5.8.3))
       stylelint-no-unused-selectors:
-        specifier: git+https://github.com/toggle-corp/stylelint-no-unused-selectors#feature/yarn-to-pnpm
-        version: https://codeload.github.com/toggle-corp/stylelint-no-unused-selectors/tar.gz/e0831e1fc1c194d60f4eff4fb9068b3ac78f5beb(stylelint@16.19.1(typescript@5.8.3))
+        specifier: ^1.0.40
+        version: 1.0.40(stylelint@16.19.1(typescript@5.8.3))
       stylelint-value-no-unknown-custom-properties:
         specifier: ^6.0.1
         version: 6.0.1(stylelint@16.19.1(typescript@5.8.3))
@@ -4436,12 +4436,11 @@ packages:
     peerDependencies:
       stylelint: ^16.1.0
 
-  stylelint-no-unused-selectors@https://codeload.github.com/toggle-corp/stylelint-no-unused-selectors/tar.gz/e0831e1fc1c194d60f4eff4fb9068b3ac78f5beb:
-    resolution: {tarball: https://codeload.github.com/toggle-corp/stylelint-no-unused-selectors/tar.gz/e0831e1fc1c194d60f4eff4fb9068b3ac78f5beb}
-    version: 1.0.4
+  stylelint-no-unused-selectors@1.0.40:
+    resolution: {integrity: sha512-NSx1OuW1a0xr9x6ms1RYY8TysBrsu3pfBdoY4HQ+p4DUvlrH7lE1ao+Bd7sxlqJClp12ocRK+b6mk+fD/cYrRg==}
     engines: {node: '>=8.16.0'}
     peerDependencies:
-      stylelint: ^15.5.0
+      stylelint: ^9.10.1 || ^10.0.0
 
   stylelint-order@1.0.0:
     resolution: {integrity: sha512-2IVM8GzeKIDQDTETNdmgX99ywGrb7OqFWkniCw7QLqS/xONPGMLY/xAQnvGcUS3oBSo8znsoshsWVBqPz2Kv4Q==}
@@ -4650,6 +4649,11 @@ packages:
   typed-array-length@1.0.7:
     resolution: {integrity: sha512-3KS2b+kL7fsuk/eJZ7EQdnEmQoaho/r6KUef7hxvltNA5DR8NAUM+8wJMbJyZ4G9/7i3v5zPBIMN5aybAh2/Jg==}
     engines: {node: '>= 0.4'}
+
+  typescript@3.9.10:
+    resolution: {integrity: sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
 
   typescript@5.8.3:
     resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
@@ -9816,7 +9820,7 @@ snapshots:
     dependencies:
       stylelint: 16.19.1(typescript@5.8.3)
 
-  stylelint-no-unused-selectors@https://codeload.github.com/toggle-corp/stylelint-no-unused-selectors/tar.gz/e0831e1fc1c194d60f4eff4fb9068b3ac78f5beb(stylelint@16.19.1(typescript@5.8.3)):
+  stylelint-no-unused-selectors@1.0.40(stylelint@16.19.1(typescript@5.8.3)):
     dependencies:
       '@babel/parser': 7.27.1
       '@babel/traverse': 7.27.1
@@ -9827,6 +9831,7 @@ snapshots:
       postcss-selector-parser: 6.1.2
       string-template: 1.0.0
       stylelint: 16.19.1(typescript@5.8.3)
+      typescript: 3.9.10
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -10075,6 +10080,8 @@ snapshots:
       is-typed-array: 1.1.15
       possible-typed-array-names: 1.1.0
       reflect.getprototypeof: 1.0.10
+
+  typescript@3.9.10: {}
 
   typescript@5.8.3: {}
 
