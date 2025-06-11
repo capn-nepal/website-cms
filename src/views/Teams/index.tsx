@@ -61,15 +61,18 @@ const TEAMS = gql`
 `;
 
 const PAGE_SIZE = 10;
-const memberTypeOptions = [
-    { key: 'TEAM_MEMBER', label: 'Team Member' },
-    { key: 'BOARD_MEMBER', label: 'Board Member' },
+const memberTypeOptions :{
+    label: string;
+    memberType: TeamMemberTypeEnum;
+}[] = [
+    { memberType: 'TEAM_MEMBER', label: 'Team Member' },
+    { memberType: 'BOARD_MEMBER', label: 'Board Member' },
 ];
 
 const keySelector = (item: TeamsItem) => item.id;
 
-const memberKeySelector = (option: { key: string; label: string }) => String(option.key);
-const memberLabelSelector = (option: { key: string; label: string }) => String(option.label);
+const memberKeySelector = (option:{memberType:TeamMemberTypeEnum}) => option.memberType;
+const memberLabelSelector = (option: {label: string }) => String(option.label);
 
 /** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
@@ -163,7 +166,10 @@ export function Component() {
                 }>(
                 'actions',
                 'Actions',
-                TeamActions,
+                TeamActions as React.FC<{
+                    teamMember: TeamsItem;
+                    onEdit: (teamMember: TeamsItem) => void;
+                }>,
                 (_key, item) => ({
                     teamMember: item,
                     onEdit: (selectedItem) => {
