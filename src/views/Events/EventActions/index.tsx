@@ -3,33 +3,115 @@ import {
     IoPencil,
     IoTrash,
 } from 'react-icons/io5';
+import {
+    gql,
+    useMutation,
+} from '@apollo/client';
 import { Button } from '@togglecorp/toggle-ui';
+
+import {
+    ArchiveEventMutation,
+    ArchiveEventMutationVariables,
+    EventTypeMutationResponseType,
+} from '#generated/types/graphql';
+import useAlert from '#hooks/useAlert';
+import useBooleanState from '#hooks/useBooleanState';
+
+import EventModal from '../EventModal';
 
 import styles from './styles.module.css';
 
 interface Props {
-    eventId: string;
-    onDelete: (id: string) => void;
-    onEdit: (id: string) => void;
+    event: {
+        id: string;
+        name: string;
+        description: string;
+        location?: string | null;
+        startDate: string;
+        endDate: string;
+    };
+    onEdit?: (event: Props['event']) => void;
 }
 
+const ARCHIVE_EVENT = gql`
+    mutation ArchiveEvent($pk: ID!) {
+        archiveEvent(pk: $pk) {
+            ... on EventTypeMutationResponseType {
+                errors
+                ok
+                result {
+                    id
+                    name
+                    description
+                    location
+                    startDate
+                    endDate
+                }
+            }
+            ... on OperationInfo {
+                __typename
+                messages {
+                    message
+                }
+            }
+        }
+    }
+`;
 function EventActions(props: Props) {
-    const {
-        eventId,
-        onDelete,
-        onEdit,
-    } = props;
+    const { event, onEdit } = props;
+    const alert = useAlert();
+
+    const [
+        showEditEventModal, {
+            setTrue: setShowEditEventModalTrue,
+            setFalse: setShowEditEventModalFalse,
+        }] = useBooleanState(false);
+
+    const [
+        triggerArchiveEvent,
+        { loading: archiveLoading },
+    ] = useMutation<ArchiveEventMutation, ArchiveEventMutationVariables>(
+        ARCHIVE_EVENT,
+        {
+            onCompleted: (response) => {
+                const archiveEvent = response.archiveEvent as EventTypeMutationResponseType;
+                const { ok, errors } = archiveEvent;
+                if (errors) {
+                    const errorMessages = errors
+                        ?.map((message: { messages: string }) => message.messages)
+                        .filter((msg: string) => msg)
+                        .join(', ');
+                    alert.show(errorMessages);
+                } else if (ok) {
+                    alert.show(
+                        'Successfully archived the event',
+                        { variant: 'success' },
+                    );
+                }
+            },
+            onError: () => {
+                alert.show(
+                    'Failed to archive the event',
+                    { variant: 'danger' },
+                );
+            },
+        },
+    );
 
     const handleDelete = useCallback(() => {
-        onDelete(eventId);
-    }, [
-        onDelete,
-        eventId,
-    ]);
+        triggerArchiveEvent({ variables: { pk: event.id } });
+    }, [triggerArchiveEvent, event.id]);
 
     const handleEdit = useCallback(() => {
-        onEdit(eventId);
-    }, [onEdit, eventId]);
+        if (!event || !event.id) {
+            alert.show('Invalid event data');
+            return;
+        }
+        setShowEditEventModalTrue();
+        if (onEdit) {
+            onEdit(event);
+        }
+    }, [event, alert, setShowEditEventModalTrue, onEdit]);
 
     return (
         <div className={styles.eventActions}>
@@ -46,11 +128,18 @@ function EventActions(props: Props) {
                 onClick={handleDelete}
                 title="Delete"
                 transparent
+                disabled={archiveLoading}
             >
                 <IoTrash />
             </Button>
+            {showEditEventModal && (
+                <EventModal
+                    onClose={setShowEditEventModalFalse}
+                    title="Edit Event"
+                    initialValues={event}
+                />
+            )}
         </div>
     );
 }
-
 export default EventActions;

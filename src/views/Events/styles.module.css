@@ -7,4 +7,9 @@
             width: 100%!important;
         }
     }
+    .actions{
+        display:flex;
+        gap: var(--cms-ui-spacing-md);
+    }
+    
 }

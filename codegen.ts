@@ -14,6 +14,10 @@ const config: CodegenConfig = {
     },
     config: {
         enumsAsTypes: true,
+        scalars: {
+            Date: 'string',
+            DateTime: 'string',
+        },
     },
 };
 
