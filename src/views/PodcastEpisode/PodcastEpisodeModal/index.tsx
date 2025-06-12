@@ -5,6 +5,7 @@ import {
 import {
     gql,
     useMutation,
+    useQuery,
 } from '@apollo/client';
 import {
     createSubmitHandler,
@@ -18,6 +19,7 @@ import {
     DateInput,
     Modal,
     NumberInput,
+    SelectInput,
     TextInput,
 } from '@togglecorp/toggle-ui';
 
@@ -26,6 +28,8 @@ import {
     CreatePodcastEpisodeMutation,
     CreatePodcastEpisodeMutationVariables,
     PodcastEpisodeTypeMutationResponseType,
+    PodcastSeasonsQuery,
+    PodcastSeasonsQueryVariables,
     PodcastSeasonTypeMutationResponseType,
     UpdatePodcastEpisodeInput,
     UpdatePodcastEpisodeMutation,
@@ -95,12 +99,24 @@ const UPDATE_PODCAST_EPISODE = gql`
         }
     }
 `;
+const PODCAST_SEASON_QUERY = gql`
+    query PodcastSeasons ($pagination: OffsetPaginationInput) {
+        podcastSeasons(pagination: $pagination) {
+            results {
+                id
+                seasonNumber
+            }
+        }
+    }
+`;
 
 interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdatePodcastEpisodeInput & { id: string }>;
 }
+const seasonKeySelector = (option: { value: string; label: string }) => option.value;
+const seasonLabelSelector = (option: { value: string; label: string }) => option.label;
 
 type PartialFormType = Partial<CreatePodcastEpisodeInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
@@ -153,7 +169,16 @@ function PodcastEpisodeModal(props: Props) {
     } = useForm(formSchema, { value: defaultFormValues });
 
     const error = getErrorObject(formError);
+    const {
+        data: podcastSeasonsResponse,
+    } = useQuery<PodcastSeasonsQuery, PodcastSeasonsQueryVariables>(
+        PODCAST_SEASON_QUERY,
+    );
 
+    const seasonOptions = podcastSeasonsResponse?.podcastSeasons.results.map((season) => ({
+        value: season.id,
+        label: `Season ${season.seasonNumber}`,
+    })) ?? [];
     const [
         addPodcastEpisodeTrigger,
         { loading: addLoading },
@@ -307,6 +332,16 @@ function PodcastEpisodeModal(props: Props) {
                 name="releaseDate"
                 value={value.releaseDate}
                 error={typeof error?.releaseDate === 'string' ? error.releaseDate : undefined}
+                onChange={setFieldValue}
+            />
+            <SelectInput
+                label="Podcast Season"
+                name="podcastSeason"
+                options={seasonOptions}
+                value={value.podcastSeason}
+                error={error?.podcastSeason}
+                keySelector={seasonKeySelector}
+                labelSelector={seasonLabelSelector}
                 onChange={setFieldValue}
             />
 

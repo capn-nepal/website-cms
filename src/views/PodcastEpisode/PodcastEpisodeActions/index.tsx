@@ -28,7 +28,9 @@ interface Props {
         title: string;
         episodeNumber: number;
         isArchived: boolean;
-        podcastSeason: string | undefined;
+        podcastSeason: {
+            pk: string;
+        }
         releaseDate: string | null;
         thumbnail: Thumbnail | null;
         videoUrl: string | null;
