@@ -162,6 +162,19 @@ const events = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
+const positions = customWrapRoute({
+    parent: homeLayout,
+    path: 'positions',
+    component: {
+        render: () => import('#views/Positions'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Position',
+        visibility: 'is-authenticated',
+    },
+});
 
 /*
 const userManagement = customWrapRoute({
@@ -301,6 +314,7 @@ const wrappedRoutes = {
     reports,
     podcast,
     youtubeVideos,
+    positions,
     // userActivation,
     // editProfile,
     // forgotPassword,

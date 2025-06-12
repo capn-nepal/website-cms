@@ -8,7 +8,10 @@ import {
     MdOutlineOndemandVideo,
     MdSmartDisplay,
 } from 'react-icons/md';
-import { TbReportSearch } from 'react-icons/tb';
+import {
+    TbReportSearch,
+    TbScanPosition,
+} from 'react-icons/tb';
 import { Outlet } from 'react-router-dom';
 
 import Navbar from '#components/Navbar';
@@ -71,6 +74,12 @@ export function Component() {
                             icon={<MdSmartDisplay />}
                         >
                             Youtube Videos
+                        </NavigationTab>
+                        <NavigationTab
+                            to="positions"
+                            icon={<TbScanPosition />}
+                        >
+                            Positions
                         </NavigationTab>
                     </>
                 )}
