@@ -1,0 +1,15 @@
+.container {
+    padding: var(--cms-ui-spacing-lg);
+
+    .content {
+        .table {
+            background-color: var(--cms-ui-color-white-card);
+            width: 100%!important;
+        }
+    }
+    .actions{
+        display:flex;
+        gap: var(--cms-ui-spacing-md);
+    }
+    
+}

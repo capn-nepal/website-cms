@@ -162,6 +162,7 @@ const events = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
+
 const positions = customWrapRoute({
     parent: homeLayout,
     path: 'positions',
@@ -172,6 +173,20 @@ const positions = customWrapRoute({
     wrapperComponent: Auth,
     context: {
         title: 'Position',
+        visibility: 'is-authenticated',
+    },
+});
+
+const jobVacancy = customWrapRoute({
+    parent: homeLayout,
+    path: 'jobVacancy',
+    component: {
+        render: () => import('#views/JobVacancy'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Job Vacancy',
         visibility: 'is-authenticated',
     },
 });
@@ -315,6 +330,7 @@ const wrappedRoutes = {
     podcast,
     youtubeVideos,
     positions,
+    jobVacancy,
     // userActivation,
     // editProfile,
     // forgotPassword,

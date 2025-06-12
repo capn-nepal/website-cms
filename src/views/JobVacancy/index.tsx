@@ -10,6 +10,7 @@ import {
 } from '@apollo/client';
 import {
     Button,
+    createNumberColumn,
     createStringColumn,
     Pager,
     SelectInput,
@@ -19,19 +20,18 @@ import {
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
 import {
-    EmploymentTypeEnum,
-    PositionsQuery,
-    PositionsQueryVariables,
+    JobVacanciesQuery,
+    JobVacanciesQueryVariables,
 } from '#generated/types/graphql';
 import useBooleanState from '#hooks/useBooleanState';
 import useFilterState from '#hooks/useFilterState';
 
-import PositionActions from './PositionActions';
-import PositionModal from './PositionModal';
+import JobVacanciesModal from './jobVacanciesModal';
+import JobVacancyActions from './JobVacancyActions';
 
 import styles from './styles.module.css';
 
-type PositionsItem = NonNullable<PositionsQuery['positions']['results'][number]>;
+type JobsItem = NonNullable<JobVacanciesQuery['jobVacancies']['results'][number]>;
 
 const PAGE_SIZE = 10;
 const statusOption = [
@@ -39,40 +39,30 @@ const statusOption = [
     { value: false, label: 'false' },
 ];
 
-const employeeTypeOptions: {
-    label: string;
-    employeeType: EmploymentTypeEnum;
-}[] = [
-    { employeeType: 'CONTRACT', label: 'Contract' },
-    { employeeType: 'FULL_TIME', label: 'Full Time' },
-    { employeeType: 'PART_TIME', label: 'Part Time' },
-];
-
-const employeeKeySelector = (option: { employeeType: EmploymentTypeEnum}) => option.employeeType;
-const employeeLabelSelector = (option: { label: string }) => option.label;
-
 const statusKeySelector = (option: { value: boolean; label: string }) => String(option.value);
 const statusLabelSelector = (option: { value: boolean; label: string }) => option.label;
 
-const keySelector = (item: PositionsItem) => item.id;
+const keySelector = (item: JobsItem) => item.id;
 
 const POSITIONS = gql`
-    query Positions(
+    query JobVacancies(
         $pagination:OffsetPaginationInput ,
-        $filters: PositionFilter,
-        $order:  PositionOrder
+        $filters: JobVacancyFilter,
+        $order: JobVacancyOrder,
         ) {
-         positions (order: $order, pagination: $pagination, filters: $filters) {
+            jobVacancies (order: $order, pagination: $pagination, filters: $filters) {
             pageInfo {
                 limit
                 offset
             }
             results {
+                deadline
                 description
-                employmentType
                 id
-                name
-                summary
+                numberOfVacancies
+                position {
+                    pk
+                }
             }
             totalCount
         }
@@ -84,18 +74,17 @@ const POSITIONS = gql`
 export function Component() {
     const [page, setPage] = useState(1);
     const [
-        showPositionModal, {
-            setTrue: setShowPositionModalTrue,
-            setFalse: setShowPositionModalFalse,
+        showJobsModal, {
+            setTrue: setShowJobVacancyModalTrue,
+            setFalse: setShowJobVacancyModalFalse,
         }] = useBooleanState(false);
 
-    const [selectedPosition, setSelectedPosition] = useState<Partial<PositionsItem> | null>(null);
+    const [selectedJob, setSelectedJob] = useState<Partial<JobsItem> | undefined>(undefined);
 
     const {
         filter,
         setFilterField,
     } = useFilterState<{
-        employmentType?: EmploymentTypeEnum,
         isArchived?: boolean;
     }>({
         filter: {},
@@ -109,12 +98,12 @@ export function Component() {
         },
         filters: {
             isArchived: filter.isArchived,
-            employmentType: filter.employmentType,
         },
     };
     const {
-        data: positionsResponse,
-    } = useQuery<PositionsQuery, PositionsQueryVariables>(
+        data: jobVacanciesResponse,
+        refetch,
+    } = useQuery<JobVacanciesQuery, JobVacanciesQueryVariables>(
         POSITIONS,
         { variables },
     );
@@ -134,42 +123,59 @@ export function Component() {
         [setFilterField],
     );
 
-    const handleAddPosition = useCallback(() => {
-        setSelectedPosition(null);
-        setShowPositionModalTrue();
-    }, [setShowPositionModalTrue]);
+    const handleAddVacancy = useCallback(() => {
+        setSelectedJob(undefined);
+        setShowJobVacancyModalTrue();
+    }, [setShowJobVacancyModalTrue]);
 
-    const data = positionsResponse?.positions.results;
+    const data = jobVacanciesResponse?.jobVacancies.results;
 
     const columns = useMemo(() => [
-        createStringColumn<PositionsItem, string | number>(
-            'name',
-            'Event Name',
-            (item) => item.name,
-        ),
-        createStringColumn<PositionsItem, string | number>(
+        createStringColumn<JobsItem, string | number>(
             'description',
             'Description',
             (item) => item.description,
         ),
-        createStringColumn<PositionsItem, string | number>(
-            'summary',
-            'Summary',
-            (item) => item.description,
+        createStringColumn<JobsItem, string | number>(
+            'deadline',
+            'Deadline',
+            (item) => item.deadline,
         ),
-        createStringColumn<PositionsItem, string | number>(
-            'employmentType',
-            'Employment Type',
-            (item) => item.employmentType,
+        createNumberColumn<JobsItem, string | number>(
+            'numberOfVacancies',
+            'No.of Vacancies',
+            (item) => item.numberOfVacancies,
         ),
-        createElementColumn<PositionsItem, string, { positions: PositionsItem }>(
-            'actions',
-            'Actions',
-            PositionActions,
-            (_key, item) => ({ positions: item }),
+        createStringColumn<JobsItem, string>(
+            'positions',
+            'Positions',
+            (item) => item.position.pk,
         ),
+        createElementColumn<JobsItem, string, {
+            jobVacancy: JobsItem;
+            onEdit:(
+                job: JobsItem) => void;
+            refetch: () => void;
+                }>(
+                'actions',
+                'Actions',
+                JobVacancyActions,
+                (_key, item) => ({
+                    jobVacancy: item,
+                    onEdit: (job) => {
+                        setSelectedJob({
+                            ...job,
+                            position: {
+                                pk: job.position.pk,
+                            },
+                        });
+                        setShowJobVacancyModalTrue();
+                    },
+                    refetch,
+                }),
+                ),
 
-    ], []);
+    ], [refetch, setShowJobVacancyModalTrue]);
 
     return (
         <Container
@@ -177,7 +183,7 @@ export function Component() {
             childrenContainerClassName={styles.content}
             showHeader
             headingLevel={6}
-            heading="Positions Table"
+            heading="Job Vacancy"
             headingDescription={(
                 <div className={styles.actions}>
                     <SelectInput
@@ -189,22 +195,13 @@ export function Component() {
                         value={filter.isArchived !== undefined ? String(filter.isArchived) : null}
                         onChange={onChange}
                     />
-                    <SelectInput
-                        placeholder="Employment Type"
-                        name="employmentType"
-                        options={employeeTypeOptions}
-                        keySelector={employeeKeySelector}
-                        labelSelector={employeeLabelSelector}
-                        value={filter.employmentType}
-                        onChange={setFilterField}
-                    />
                 </div>
             )}
             actions={(
                 <Button
                     name="Add Event"
                     variant="primary"
-                    onClick={handleAddPosition}
+                    onClick={handleAddVacancy}
                     icons={<IoAdd />}
                 >
                     Add
@@ -214,7 +211,7 @@ export function Component() {
                 <Pager
                     activePage={page}
                     onActivePageChange={setPage}
-                    itemsCount={positionsResponse?.positions.totalCount ?? 0}
+                    itemsCount={jobVacanciesResponse?.jobVacancies.totalCount ?? 0}
                     maxItemsPerPage={PAGE_SIZE}
                     onItemsPerPageChange={setPage}
                 />
@@ -228,15 +225,15 @@ export function Component() {
                 resizableColumn
                 fixedColumnWidth
             />
-            {showPositionModal && (
-                <PositionModal
-                    onClose={setShowPositionModalFalse}
-                    title={selectedPosition ? 'Edit Position' : 'Add Position'}
-                    initialValues={selectedPosition || undefined}
+            {showJobsModal && (
+                <JobVacanciesModal
+                    onClose={setShowJobVacancyModalFalse}
+                    title={selectedJob ? 'Edit Job' : 'Add Job'}
+                    initialValues={selectedJob}
                 />
             )}
         </Container>
     );
 }
 
-Component.displayName = 'Positions';
+Component.displayName = 'JobVacancy';

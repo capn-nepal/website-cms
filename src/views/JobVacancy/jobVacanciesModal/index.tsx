@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import {
     gql,
     useMutation,
+    useQuery,
 } from '@apollo/client';
 import {
     createSubmitHandler,
@@ -12,49 +13,42 @@ import {
 } from '@togglecorp/toggle-form';
 import {
     Button,
+    DateInput,
     Modal,
+    NumberInput,
     SelectInput,
     TextArea,
-    TextInput,
 } from '@togglecorp/toggle-ui';
 
 import {
-    CreatePositionInput,
-    CreatePositionMutation,
-    CreatePositionMutationVariables,
-    EmploymentTypeEnum,
-    PositionTypeMutationResponseType,
-    UpdatePositionInput,
-    UpdatePositionMutation,
-    UpdatePositionMutationVariables,
+    CreateJobVacancyInput,
+    CreateJobVacancyMutation,
+    CreateJobVacancyMutationVariables,
+    JobVacancyTypeMutationResponseType,
+    PositionsQuery,
+    PositionsQueryVariables,
+    UpdateJobVacancyInput,
+    UpdateJobVacancyMutation,
+    UpdateJobVacancyMutationVariables,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 
 import styles from './styles.module.css';
 
-const employeeTypeOptions: {
-    label: string;
-    employeeType: EmploymentTypeEnum;
-}[] = [
-    { employeeType: 'CONTRACT', label: 'Contract' },
-    { employeeType: 'FULL_TIME', label: 'Full Time' },
-    { employeeType: 'PART_TIME', label: 'Part Time' },
-];
-const employeeKeySelector = (option: { employeeType: EmploymentTypeEnum}) => option.employeeType;
-const employeeLabelSelector = (option: { label: string }) => option.label;
-
-const CREATE_POSITION = gql`
-    mutation CreatePosition($data: CreatePositionInput!) {
-        createPosition(data: $data) {
-            ... on PositionTypeMutationResponseType {
+const CREATE_JOB_VACANCY = gql`
+    mutation CreateJobVacancy($data: CreateJobVacancyInput!) {
+        createJobVacancy(data: $data) {
+            ... on JobVacancyTypeMutationResponseType {
                 errors
                 ok
                 result {
+                    deadline
                     description
-                    employmentType
                     id
-                    name
-                    summary
+                    numberOfVacancies
+                    position {
+                        pk
+                    }
                 }
             }
             ... on OperationInfo {
@@ -67,18 +61,20 @@ const CREATE_POSITION = gql`
     }
 `;
 
-const UPDATE_POSITION = gql`
-    mutation UpdatePosition($pk: ID!, $data: UpdatePositionInput!) {
-        updatePosition(pk: $pk, data: $data) {
-            ... on PositionTypeMutationResponseType {
+const UPDATE_JOB_VACANCY = gql`
+    mutation UpdateJobVacancy($pk: ID!, $data: UpdateJobVacancyInput!) {
+        updateJobVacancy(pk: $pk, data: $data) {
+            ... on JobVacancyTypeMutationResponseType {
                 errors
                 ok
                 result {
+                    deadline
                     description
-                    employmentType
                     id
-                    name
-                    summary
+                    numberOfVacancies
+                    position {
+                        pk
+                    }
                 }
             }
             ... on OperationInfo {
@@ -86,6 +82,17 @@ const UPDATE_POSITION = gql`
                 messages {
                     message
                 }
+            }
+        }
+    }
+`;
+
+const POSITIONS_QUERY = gql`
+    query Positions($pagination: OffsetPaginationInput) {
+        positions(pagination: $pagination) {
+            results {
+                id
+                name
             }
         }
     }
@@ -94,16 +101,18 @@ const UPDATE_POSITION = gql`
 interface Props {
     title: string;
     onClose: () => void;
-    initialValues?: Partial<UpdatePositionInput & { id: string }>;
+    initialValues?: Partial<UpdateJobVacancyInput & { id: string }>;
 }
+const positionKeySelector = (option: { value: string; label: string }) => option.value;
+const positionLabelSelector = (option: { value: string; label: string }) => option.label;
 
-type PartialFormType = Partial<CreatePositionInput>;
+type PartialFormType = Partial<CreateJobVacancyInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
 const formSchema: FormSchema = {
     fields: (): FormSchemaFields => ({
-        name: {
+        deadline: {
             required: true,
             requiredValidation: requiredStringCondition,
         },
@@ -111,19 +120,17 @@ const formSchema: FormSchema = {
             required: true,
             requiredValidation: requiredStringCondition,
         },
-        summary: {
+        numberOfVacancies: {
+            required: true,
+        },
+        position: {
             required: true,
             requiredValidation: requiredStringCondition,
         },
-        employmentType: {
-            required: true,
-            requiredValidation: requiredStringCondition,
-        },
-
     }),
 };
 
-function PositionModal(props: Props) {
+function JobVacanciesModal(props: Props) {
     const {
         title,
         onClose,
@@ -131,11 +138,11 @@ function PositionModal(props: Props) {
     } = props;
     const alert = useAlert();
 
-    const defaultFormValues: Partial<CreatePositionInput> = {
-        name: initialValues?.name || '',
+    const defaultFormValues: Partial<CreateJobVacancyInput> = {
         description: initialValues?.description || '',
-        summary: initialValues?.summary || undefined,
-        employmentType: initialValues?.employmentType || undefined,
+        deadline: initialValues?.deadline || undefined,
+        numberOfVacancies: initialValues?.numberOfVacancies || undefined,
+        position: initialValues?.position || '',
     };
     const {
         value,
@@ -146,15 +153,26 @@ function PositionModal(props: Props) {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
+    const {
+        data: positionsResponse,
+    } = useQuery<PositionsQuery, PositionsQueryVariables>(
+        POSITIONS_QUERY,
+    );
+
+    const positionOptions = positionsResponse?.positions.results.map((position) => ({
+        value: position.id,
+        label: position.name,
+    })) ?? [];
+
     const [
-        addEventsTrigger,
-        { loading: addPositionLoading },
-    ] = useMutation<CreatePositionMutation, CreatePositionMutationVariables>(
-        CREATE_POSITION,
+        addJobVacancyTrigger,
+        { loading: addJobVacancyLoading },
+    ] = useMutation<CreateJobVacancyMutation, CreateJobVacancyMutationVariables>(
+        CREATE_JOB_VACANCY,
         {
             onCompleted: (response) => {
-                const addPosition = response.createPosition as PositionTypeMutationResponseType;
-                const { ok, errors } = addPosition;
+                const addVacancy = response.createJobVacancy as JobVacancyTypeMutationResponseType;
+                const { ok, errors } = addVacancy;
                 if (errors) {
                     const errorMessages = errors
                         ?.map((message: { messages: string }) => message.messages)
@@ -163,7 +181,7 @@ function PositionModal(props: Props) {
                     alert.show(errorMessages);
                 } else if (ok) {
                     alert.show(
-                        ' New Position successfully created',
+                        'New Job Vacancy successfully created',
                         { variant: 'success' },
                     );
                     onClose();
@@ -171,7 +189,7 @@ function PositionModal(props: Props) {
             },
             onError: () => {
                 alert.show(
-                    'Failed to create new Position',
+                    'Failed to create new Job Vacancy',
                     { variant: 'danger' },
                 );
             },
@@ -179,14 +197,15 @@ function PositionModal(props: Props) {
     );
 
     const [
-        updateEventTrigger,
-        { loading: updatePositionLoading },
-    ] = useMutation<UpdatePositionMutation, UpdatePositionMutationVariables>(
-        UPDATE_POSITION,
+        updateJobVacancyTrigger,
+        { loading: updateJobVacancyLoading },
+    ] = useMutation<UpdateJobVacancyMutation, UpdateJobVacancyMutationVariables>(
+        UPDATE_JOB_VACANCY,
         {
             onCompleted: (response) => {
-                const updatePosition = response.updatePosition as PositionTypeMutationResponseType;
-                const { ok, errors } = updatePosition;
+                // eslint-disable-next-line max-len
+                const updateJobVacancy = response.updateJobVacancy as JobVacancyTypeMutationResponseType;
+                const { ok, errors } = updateJobVacancy;
                 if (errors) {
                     const errorMessages = errors
                         ?.map((message: { messages: string }) => message.messages)
@@ -195,7 +214,7 @@ function PositionModal(props: Props) {
                     alert.show(errorMessages);
                 } else if (ok) {
                     alert.show(
-                        ' Position successfully updated',
+                        'Job Vacancy successfully updated',
                         { variant: 'success' },
                     );
                     onClose();
@@ -203,7 +222,7 @@ function PositionModal(props: Props) {
             },
             onError: () => {
                 alert.show(
-                    'Failed to update the  Position',
+                    'Failed to update the Job Vacancy',
                     { variant: 'danger' },
                 );
             },
@@ -213,20 +232,19 @@ function PositionModal(props: Props) {
     const handlePositionSubmit = useCallback(
         (finalValue: PartialFormType) => {
             if (initialValues?.id) {
-                updateEventTrigger({
+                updateJobVacancyTrigger({
                     variables: {
                         pk: initialValues.id,
-                        data: finalValue as UpdatePositionInput,
+                        data: finalValue as UpdateJobVacancyInput,
                     },
-
                 });
             } else {
-                addEventsTrigger({
-                    variables: { data: finalValue as CreatePositionInput },
+                addJobVacancyTrigger({
+                    variables: { data: finalValue as CreateJobVacancyInput },
                 });
             }
         },
-        [addEventsTrigger, initialValues, updateEventTrigger],
+        [addJobVacancyTrigger, initialValues, updateJobVacancyTrigger],
     );
 
     const handleSubmit = useCallback(() => {
@@ -237,7 +255,7 @@ function PositionModal(props: Props) {
 
     return (
         <Modal
-            className={styles.positionModal}
+            className={styles.jobVacancyModal}
             heading={title}
             onClose={onClose}
             size="medium"
@@ -247,7 +265,7 @@ function PositionModal(props: Props) {
                         name="cancel"
                         variant="default"
                         onClick={onClose}
-                        disabled={addPositionLoading || updatePositionLoading}
+                        disabled={addJobVacancyLoading || updateJobVacancyLoading}
                     >
                         Cancel
                     </Button>
@@ -255,7 +273,7 @@ function PositionModal(props: Props) {
                         name="save"
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={pristine || addPositionLoading || updatePositionLoading}
+                        disabled={pristine || addJobVacancyLoading || updateJobVacancyLoading}
                     >
                         Save
                     </Button>
@@ -263,13 +281,6 @@ function PositionModal(props: Props) {
             )}
             freeHeight
         >
-            <TextInput
-                label="Event Name"
-                name="name"
-                value={value.name}
-                error={error?.name}
-                onChange={setFieldValue}
-            />
             <TextArea
                 label="Description"
                 name="description"
@@ -277,29 +288,32 @@ function PositionModal(props: Props) {
                 error={error?.description}
                 onChange={setFieldValue}
             />
-
-            <TextArea
-                label="Summary"
-                name="summary"
-                value={value.summary}
-                error={error?.summary}
+            <DateInput
+                label="Deadline"
+                name="deadline"
+                value={value.deadline}
+                error={typeof error?.deadline === 'string' ? error.deadline : undefined}
                 onChange={setFieldValue}
             />
-            <div>
-                <SelectInput
-                    label="Employment type"
-                    placeholder="Employment type"
-                    name="employmentType"
-                    options={employeeTypeOptions}
-                    keySelector={employeeKeySelector}
-                    labelSelector={employeeLabelSelector}
-                    value={value.employmentType}
-                    onChange={setFieldValue}
-                />
-            </div>
-
+            <NumberInput
+                name="numberOfVacancies"
+                label="No of vacancies"
+                value={value.numberOfVacancies}
+                onChange={setFieldValue}
+                error={error?.numberOfVacancies}
+            />
+            <SelectInput
+                label="Position"
+                name="position"
+                options={positionOptions}
+                value={value.position}
+                error={error?.position}
+                keySelector={positionKeySelector}
+                labelSelector={positionLabelSelector}
+                onChange={setFieldValue}
+            />
         </Modal>
     );
 }
 
-export default PositionModal;
+export default JobVacanciesModal;

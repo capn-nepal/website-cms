@@ -1,4 +1,5 @@
 import {
+    IoChatbubbleEllipses,
     IoGrid,
     IoImages,
     IoPerson,
@@ -80,6 +81,12 @@ export function Component() {
                             icon={<TbScanPosition />}
                         >
                             Positions
+                        </NavigationTab>
+                        <NavigationTab
+                            to="jobVacancy"
+                            icon={<IoChatbubbleEllipses />}
+                        >
+                            Job Vacancy
                         </NavigationTab>
                     </>
                 )}
