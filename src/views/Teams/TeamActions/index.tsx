@@ -3,9 +3,17 @@ import {
     IoPencil,
     IoTrash,
 } from 'react-icons/io5';
+import {
+    gql,
+    useMutation,
+} from '@apollo/client';
 import { Button } from '@togglecorp/toggle-ui';
 
-import { TeamMemberTypeEnum } from '#generated/types/graphql';
+import {
+    DeleteTeamMemberMutation,
+    DeleteTeamMemberMutationVariables,
+    TeamMemberTypeEnum,
+} from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 
 import styles from './styles.module.css';
@@ -25,6 +33,30 @@ interface Props {
     onEdit: (teamMember: Props['teamMember']) => void;
 }
 
+const DELETE_TEAM_MEMBER = gql`
+    mutation DeleteTeamMember($id: ID!) {
+        deleteTeamMember(data: { id: $id }) {
+            ... on TeamMemberType {
+                id
+                designation
+                firstName
+                lastName
+                memberPhoto {
+                    url
+                }
+                memberType
+                middleName
+            }
+            ... on OperationInfo {
+                __typename
+                messages {
+                    message
+                }
+            }
+        }
+    }
+`;
+
 function TeamActions(props: Props) {
     const {
         teamMember,
@@ -32,7 +64,11 @@ function TeamActions(props: Props) {
     } = props;
 
     const alert = useAlert();
-
+    const [
+        triggerDeleteTeamMember,
+    ] = useMutation<DeleteTeamMemberMutation, DeleteTeamMemberMutationVariables>(
+        DELETE_TEAM_MEMBER,
+    );
     const handleEdit = useCallback(() => {
         if (!teamMember?.id) {
             alert.show('Invalid team member data');
@@ -40,6 +76,17 @@ function TeamActions(props: Props) {
         }
         onEdit(teamMember);
     }, [teamMember, onEdit, alert]);
+
+    const handleDelete = useCallback(() => {
+        triggerDeleteTeamMember({
+            variables: {
+                id: teamMember.id,
+            },
+            context: {
+                hasUpload: true,
+            },
+        });
+    }, [triggerDeleteTeamMember, teamMember.id]);
 
     return (
         <div className={styles.reportActions}>
@@ -53,7 +100,7 @@ function TeamActions(props: Props) {
             </Button>
             <Button
                 name="delete"
-                onClick={() => {}}// TODO: Handle delete here
+                onClick={handleDelete}
                 title="Delete"
                 transparent
             >

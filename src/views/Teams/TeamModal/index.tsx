@@ -143,7 +143,7 @@ function TeamModal(props: Props) {
         middleName: initialValues?.middleName || '',
         lastName: initialValues?.lastName || '',
         designation: initialValues?.designation || '',
-        memberType: initialValues?.memberType || 'TEAM_MEMBER',
+        memberType: initialValues?.memberType,
         memberPhoto: initialValues?.memberPhoto,
     };
 
