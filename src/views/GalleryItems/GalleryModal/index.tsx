@@ -102,7 +102,7 @@ function GalleryModal(props: Props) {
 
     const [
         addGalleryItemTrigger,
-        { loading: addEventLoading },
+        { loading: addGalleryLoading },
     ] = useMutation<AddGalleryItemMutation, AddGalleryItemMutationVariables>(
         CREATE_GALLERY_ITEM,
         {
@@ -174,7 +174,7 @@ function GalleryModal(props: Props) {
                         name="cancel"
                         variant="default"
                         onClick={onClose}
-                        disabled={addEventLoading || pristine}
+                        disabled={addGalleryLoading || pristine}
                     >
                         Cancel
                     </Button>
@@ -182,7 +182,7 @@ function GalleryModal(props: Props) {
                         name="save"
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={pristine || addEventLoading}
+                        disabled={pristine || addGalleryLoading}
                     >
                         Save
                     </Button>

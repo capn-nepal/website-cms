@@ -163,7 +163,7 @@ export function Component() {
             )}
             actions={(
                 <Button
-                    name="Add Event"
+                    name="Add"
                     variant="primary"
                     onClick={setShowGalleryItemModalTrue}
                     icons={<IoAdd />}
