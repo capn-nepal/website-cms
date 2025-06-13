@@ -125,7 +125,7 @@ function VoxpopEpisodeActions(props: Props) {
     }, [triggerArchiveVoxpopEpisode, voxpopEpisode]);
 
     return (
-        <div className={styles.seasonsActions}>
+        <div className={styles.episodeActions}>
             <Button
                 name="edit"
                 onClick={handleEdit}
