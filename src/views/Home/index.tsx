@@ -4,7 +4,6 @@ import {
     IoPerson,
 } from 'react-icons/io5';
 import {
-    MdDraw,
     MdOutlineOndemandVideo,
     MdSmartDisplay,
 } from 'react-icons/md';
@@ -43,13 +42,7 @@ export function Component() {
                             Events
                         </NavigationTab>
                         <NavigationTab
-                            to="artWork"
-                            icon={<MdDraw />}
-                        >
-                            Artwork
-                        </NavigationTab>
-                        <NavigationTab
-                            to="gallery"
+                            to="galleryItems"
                             icon={<IoImages />}
                         >
                             Gallery

@@ -67,29 +67,17 @@ const blogs = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
-const artWork = customWrapRoute({
+
+const galleryItems = customWrapRoute({
     parent: homeLayout,
-    path: 'artWork',
+    path: 'galleryItems',
     component: {
-        render: () => import('#views/ArtWork'),
+        render: () => import('#views/GalleryItems'),
         props: {},
     },
     wrapperComponent: Auth,
     context: {
-        title: 'ArtWork',
-        visibility: 'is-authenticated',
-    },
-});
-const gallery = customWrapRoute({
-    parent: homeLayout,
-    path: 'gallery',
-    component: {
-        render: () => import('#views/Gallery'),
-        props: {},
-    },
-    wrapperComponent: Auth,
-    context: {
-        title: 'Gallery',
+        title: 'Gallery Items',
         visibility: 'is-authenticated',
     },
 });
@@ -296,8 +284,7 @@ const wrappedRoutes = {
     blogs,
     events,
     login,
-    artWork,
-    gallery,
+    galleryItems,
     reports,
     podcast,
     youtubeVideos,
