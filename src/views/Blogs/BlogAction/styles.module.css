@@ -4,3 +4,12 @@
     gap: var(--cms-ui-spacing-sm);
     padding: var(--cms-ui-spacing-xs) var(--cms-ui-spacing-xs) var(--cms-ui-spacing-xs) var(--cms-ui-spacing-md);
 }
+.edit-blog {
+    padding: var(--cms-ui-spacing-sm);
+    text-decoration: none;
+    color: var(--cms-ui-primary-text-color);
+    font-weight: var(--cms-ui-font-weight-bold);
+    &:hover {
+        background-color: var(--cms-ui-color-background);
+    }
+}

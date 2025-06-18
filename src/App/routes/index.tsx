@@ -30,7 +30,7 @@ const homeIndex = customWrapRoute({
         eagerLoad: true,
         render: Navigate,
         props: {
-            to: 'dashboard',
+            to: 'blogs',
             replace: true,
         },
     },
@@ -162,6 +162,19 @@ const events = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
+const editBlog = customWrapRoute({
+    parent: homeLayout,
+    path: 'edit-blog',
+    component: {
+        render: () => import('#views/Blogs/EditBlog'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Edit Blog',
+        visibility: 'anything',
+    },
+});
 
 /*
 const userManagement = customWrapRoute({
@@ -174,20 +187,6 @@ const userManagement = customWrapRoute({
     wrapperComponent: Auth,
     context: {
         title: 'User Management',
-        visibility: 'anything',
-    },
-});
-
-const editProfile = customWrapRoute({
-    parent: homeLayout,
-    path: 'edit-profile',
-    component: {
-        render: () => import('#views/EditProfile'),
-        props: {},
-    },
-    wrapperComponent: Auth,
-    context: {
-        title: 'Edit Profile',
         visibility: 'anything',
     },
 });
@@ -301,6 +300,7 @@ const wrappedRoutes = {
     reports,
     podcast,
     youtubeVideos,
+    editBlog,
     // userActivation,
     // editProfile,
     // forgotPassword,

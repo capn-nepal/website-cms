@@ -62,7 +62,7 @@ function Navbar(props: Props) {
     return (
         <nav className={_cs(styles.navbar, className)}>
             <Heading level={5}>
-                CMS
+                CAPN-CMS
             </Heading>
             <DropdownMenu
                 className={styles.dropdown}

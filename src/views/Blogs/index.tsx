@@ -224,7 +224,7 @@ export function Component() {
             )}
             actions={(
                 <Button
-                    name="Add Event"
+                    name="Add Blog"
                     variant="primary"
                     onClick={setShowBlogModalTrue}
                     icons={<IoAdd />}

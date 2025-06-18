@@ -1,4 +1,12 @@
-import { useCallback } from 'react';
+import {
+    useCallback,
+    useState,
+} from 'react';
+import {
+    gql,
+    useMutation,
+    useQuery,
+} from '@apollo/client';
 import {
     createSubmitHandler,
     getErrorObject,
@@ -8,28 +16,74 @@ import {
 } from '@togglecorp/toggle-form';
 import {
     Button,
+    DateInput,
     Modal,
+    SelectInput,
     TextArea,
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import {
+    AuthorsQuery,
+    AuthorsQueryVariables,
+    BlogTypeMutationResponseType,
+    CreateBlogInput,
+    CreateBlogMutation,
+    CreateBlogMutationVariables,
+} from '#generated/types/graphql';
+import useAlert from '#hooks/useAlert';
+
 import styles from './styles.module.css';
 
-type BlogItems ={
-    title: string;
-    description: string;
-    author?: string;
-    content?: string;
-    publishedDate?: string;
-    coverImage?: string;
-}
+const CREATE_BLOG = gql`
+    mutation CreateBlog($data: CreateBlogInput!) {
+        createBlog(data: $data) {
+            ... on BlogTypeMutationResponseType {
+                errors
+                ok
+                result {
+                    author {
+                        name
+                    }
+                    content
+                    coverImage {
+                    url
+                    }
+                    description
+                    featured
+                    id
+                    publishedDate
+                    status
+                    title
+                }
+            }
+            ... on OperationInfo {
+                __typename
+                messages {
+                    message
+                }
+            }
+        }
+    }
+`;
+const AUTHORS_QUERY = gql`
+    query Authors($pagination: OffsetPaginationInput) {
+        authors(pagination: $pagination) {
+            results {
+                id
+                name
+            }
+        }
+    }
+`;
 
 interface Props {
     onClose: () => void;
-    onSuccess?: () => void;
 }
+const authorKeySelector = (option: { value: string; label: string }) => option.value;
+const authorLabelSelector = (option: { value: string; label: string }) => option.label;
 
-type PartialFormType = Partial<BlogItems>;
+type PartialFormType = Partial<CreateBlogInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
@@ -64,8 +118,8 @@ const defaultFormValues: PartialFormType = {};
 function BlogModal(props: Props) {
     const {
         onClose,
-        onSuccess,
     } = props;
+    const alert = useAlert();
 
     const {
         value,
@@ -75,31 +129,83 @@ function BlogModal(props: Props) {
         setError,
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
+    const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
 
-    const handleSubmitSuccess = useCallback((formValues: PartialFormType) => {
-        console.info('Form submitted:', formValues);
+    const {
+        data: authorsResponse,
+    } = useQuery<AuthorsQuery, AuthorsQueryVariables>(
+        AUTHORS_QUERY,
+    );
 
-        if (onSuccess) {
-            onSuccess();
-        }
-
-        onClose();
-    }, [onClose, onSuccess]);
-
+    const positionOptions = authorsResponse?.authors.results.map((position) => ({
+        value: position.id,
+        label: position.name,
+    })) ?? [];
+    const [
+        createBlogResponse,
+        { loading: blogLoading },
+    ] = useMutation<CreateBlogMutation, CreateBlogMutationVariables>(
+        CREATE_BLOG,
+        {
+            onCompleted: (response) => {
+                const archiveEvent = response.createBlog as BlogTypeMutationResponseType;
+                const { ok, errors } = archiveEvent;
+                if (errors) {
+                    const errorMessages = errors
+                        ?.map((message: { messages: string }) => message.messages)
+                        .filter((msg: string) => msg)
+                        .join(', ');
+                    alert.show(errorMessages);
+                } else if (ok) {
+                    alert.show(
+                        'Blog is successfully created',
+                        { variant: 'success' },
+                    );
+                    onClose();
+                }
+            },
+            onError: () => {
+                alert.show(
+                    'Failed to create a blog',
+                    { variant: 'danger' },
+                );
+            },
+        },
+    );
+    const handleAddBlogSubmit = useCallback((finalValue: PartialFormType) => {
+        createBlogResponse({
+            variables: {
+                data: finalValue as CreateBlogInput,
+            },
+            context: {
+                hasUpload: true,
+            },
+        });
+    }, [createBlogResponse]);
     const handleSubmit = useCallback(() => {
-        createSubmitHandler(
-            validate,
-            setError,
-            handleSubmitSuccess,
-        )();
-    }, [validate, setError, handleSubmitSuccess]);
+        createSubmitHandler(validate, setError, handleAddBlogSubmit)();
+    }, [validate, setError, handleAddBlogSubmit]);
+
+    const handleFileChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const uploadedFile = e.target.files?.[0] ?? null;
+            if (uploadedFile) {
+                setFieldValue(uploadedFile, 'coverImage');
+                setFilePreview(URL.createObjectURL(uploadedFile));
+            } else {
+                setFieldValue(undefined, 'coverImage');
+                setFilePreview(undefined);
+            }
+        },
+        [setFieldValue],
+    );
 
     const error = getErrorObject(formError);
 
     return (
         <Modal
             className={styles.blogModal}
-            heading={value ? 'Edit Blog' : 'Add Blog'}
+            heading="Add Blog"
             onClose={onClose}
             size="medium"
             footer={(
@@ -115,7 +221,7 @@ function BlogModal(props: Props) {
                         name="save"
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={pristine}
+                        disabled={pristine || blogLoading}
                     >
                         Save
                     </Button>
@@ -124,7 +230,7 @@ function BlogModal(props: Props) {
             freeHeight
         >
             <TextInput
-                label="Event Name"
+                label="Title"
                 name="title"
                 value={value.title}
                 error={error?.title}
@@ -137,20 +243,52 @@ function BlogModal(props: Props) {
                 error={error?.description}
                 onChange={setFieldValue}
             />
-            <TextInput
-                label="Author Name"
+            <DateInput
+                label="Published date"
+                name="publishedDate"
+                value={value.publishedDate}
+                error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
+                onChange={setFieldValue}
+            />
+            <TextArea
+                label="Content"
+                name="content"
+                value={value.content}
+                error={error?.content}
+                onChange={setFieldValue}
+            />
+            <SelectInput
+                label="Authors"
                 name="author"
+                options={positionOptions}
                 value={value.author}
                 error={error?.author}
+                keySelector={authorKeySelector}
+                labelSelector={authorLabelSelector}
                 onChange={setFieldValue}
             />
-            <TextInput
-                label="Image URL"
-                name="coverImage"
-                value={value.coverImage}
-                error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
-                onChange={setFieldValue}
-            />
+            <div>
+                <div>Cover Image</div>
+                <input
+                    type="file"
+                    accept="image/*"
+                    id="image"
+                    name="image"
+                    onChange={handleFileChange}
+                />
+                {filePreview && (
+                    <div>
+                        <img
+                            src={filePreview}
+                            alt=""
+                            style={{ maxWidth: '100%', maxHeight: '200px' }}
+                        />
+                    </div>
+                )}
+                {error?.coverImage && typeof error.coverImage === 'string' && (
+                    <div>{error.coverImage}</div>
+                )}
+            </div>
         </Modal>
     );
 }
