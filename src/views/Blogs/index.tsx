@@ -1,5 +1,4 @@
 import {
-    useCallback,
     useMemo,
     useState,
 } from 'react';
@@ -25,7 +24,7 @@ import { createElementColumn } from '#components/CreateElementColumn';
 import {
     BlogsQuery,
     BlogsQueryVariables,
-    BlogStatusEnum,
+    StatusEnum,
 } from '#generated/types/graphql';
 import useBooleanState from '#hooks/useBooleanState';
 import useFilterState from '#hooks/useFilterState';
@@ -64,6 +63,7 @@ const BLOGS = gql`
                     name
                     id
                 }
+                status
                 coverImage {
                     url
                 }  
@@ -74,14 +74,14 @@ const BLOGS = gql`
 
 const statusOptions: {
     label: string;
-    status: BlogStatusEnum;
+    status: StatusEnum;
 }[] = [
     { status: 'ARCHIVED', label: 'Archived' },
     { status: 'DRAFT', label: 'Draft' },
     { status: 'PUBLISHED', label: 'Published' },
 ];
 
-const statusKeySelector = (option: { status: BlogStatusEnum }) => option.status;
+const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
 
 /** @knipignore */
@@ -98,7 +98,7 @@ export function Component() {
         setFilterField,
     } = useFilterState<{
         title?: string;
-        status?: BlogStatusEnum;
+        status?: StatusEnum;
     }>({
         filter: {},
         pageSize: PAGE_SIZE,
@@ -134,8 +134,6 @@ export function Component() {
         })) as unknown as BlogsItem[]
     ), [blogsResponse, page]);
 
-    const handleDelete = useCallback(() => {}, []);
-
     const columns = useMemo(() => ([
         createStringColumn<BlogsItem, string | number>(
             'sn',
@@ -157,6 +155,11 @@ export function Component() {
             'Author',
             (item) => item.author?.name,
         ),
+        createStringColumn<BlogsItem, string | number>(
+            'status',
+            'Status',
+            (item) => item.status,
+        ),
         createDateColumn<BlogsItem, string | number>(
             'publishedDate',
             'Published Date',
@@ -177,24 +180,15 @@ export function Component() {
             ),
             (_key, item: BlogsItem) => ({ imageUrl: item.coverImage?.url }),
         ),
-        createElementColumn<BlogsItem, string, {
-            id: string;
-            onDelete:(
-                id: string,
-            ) => void;
-            blogId: string;
-                }>(
-                'actions',
-                'Actions',
-                BlogActions,
-                (_key, item) => ({
-                    id: item.id,
-                    blogId: item.id,
-                    onDelete: handleDelete,
-                }),
-                ),
-
-    ]), [handleDelete]);
+        createElementColumn<BlogsItem, string, { id: string }>(
+            'actions',
+            'Actions',
+            BlogActions,
+            (_key, item) => ({
+                id: item.id,
+            }),
+        ),
+    ]), []);
 
     return (
         <Container

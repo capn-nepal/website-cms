@@ -23,6 +23,7 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import MarkdownEditor from '#components/MarkdownEditor';
 import {
     AuthorsQuery,
     AuthorsQueryVariables,
@@ -250,13 +251,6 @@ function BlogModal(props: Props) {
                 error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
                 onChange={setFieldValue}
             />
-            <TextArea
-                label="Content"
-                name="content"
-                value={value.content}
-                error={error?.content}
-                onChange={setFieldValue}
-            />
             <SelectInput
                 label="Authors"
                 name="author"
@@ -289,6 +283,13 @@ function BlogModal(props: Props) {
                     <div>{error.coverImage}</div>
                 )}
             </div>
+            <MarkdownEditor
+                label="Blog Content"
+                name="content"
+                value={value.content}
+                onChange={setFieldValue}
+                height={400}
+            />
         </Modal>
     );
 }

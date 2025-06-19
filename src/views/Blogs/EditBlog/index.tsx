@@ -18,6 +18,8 @@ import {
     Button,
     DateInput,
     SelectInput,
+    TextArea,
+    TextInput,
 } from '@togglecorp/toggle-ui';
 
 import Container from '#components/Container';
@@ -25,8 +27,8 @@ import MarkdownEditor from '#components/MarkdownEditor';
 import {
     AuthorsQuery,
     AuthorsQueryVariables,
-    BlogStatusEnum,
     BlogTypeMutationResponseType,
+    StatusEnum,
     UpdateBlogInput,
     UpdateBlogMutation,
     UpdateBlogMutationVariables,
@@ -34,6 +36,10 @@ import {
 import useAlert from '#hooks/useAlert';
 
 import styles from './styles.module.css';
+
+interface Props {
+    id : string;
+}
 
 const UPDATE_BLOG = gql`
     mutation UpdateBlog($pk: ID!, $data: UpdateBlogInput!) {
@@ -66,6 +72,7 @@ const UPDATE_BLOG = gql`
         }
     }
 `;
+
 const AUTHORS_QUERY = gql`
     query Authors($pagination: OffsetPaginationInput) {
         authors(pagination: $pagination) {
@@ -79,14 +86,14 @@ const AUTHORS_QUERY = gql`
 
 const statusOptions: {
     label: string;
-    status: BlogStatusEnum;
+    status: StatusEnum;
 }[] = [
     { status: 'ARCHIVED', label: 'Archived' },
     { status: 'DRAFT', label: 'Draft' },
     { status: 'PUBLISHED', label: 'Published' },
 ];
 
-type PartialFormType = Partial<UpdateBlogInput>;
+type PartialFormType = Partial<UpdateBlogInput> ;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
@@ -117,21 +124,7 @@ const formSchema: FormSchema = {
     }),
 };
 
-interface Props {
-    initialData: {
-        blogId: string;
-        title: string;
-        description: string;
-        content: string;
-        publishedDate: string;
-        author?: string;
-        coverImage?: string;
-        featured?: boolean;
-        status?: string;
-    };
-}
-
-const statusKeySelector = (option: { status: BlogStatusEnum }) => option.status;
+const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
 const authorKeySelector = (option: { value: string; label: string }) => option.value;
 const authorLabelSelector = (option: { value: string; label: string }) => option.label;
@@ -139,22 +132,13 @@ const authorLabelSelector = (option: { value: string; label: string }) => option
 /** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
 export function Component(props: Props) {
-    const { initialData } = props;
-
+    const {
+        id,
+    } = props;
     const alert = useAlert();
-    const defaultFormValues: PartialFormType = {
-        title: initialData?.title ?? '',
-        description: initialData?.description ?? '',
-        content: initialData?.content ?? '',
-        publishedDate: initialData?.publishedDate ?? '',
-        author: initialData?.author
-            ? [{ value: initialData.author, label: initialData.author }]
-            : undefined,
-        coverImage: initialData?.coverImage ?? '',
-        featured: initialData?.featured ?? false,
-        status: initialData?.status as BlogStatusEnum ?? undefined,
-    };
     const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
+
+    const defaultFormValues: PartialFormType = {};
 
     const {
         value,
@@ -165,64 +149,66 @@ export function Component(props: Props) {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
-    const {
-        data: authorsResponse,
-    } = useQuery<AuthorsQuery, AuthorsQueryVariables>(
+    const { data: authorsResponse } = useQuery<AuthorsQuery, AuthorsQueryVariables>(
         AUTHORS_QUERY,
     );
 
-    const authorOptions = authorsResponse?.authors.results.map((position) => ({
-        value: position.id,
-        label: position.name,
+    const authorOptions = authorsResponse?.authors.results.map((author) => ({
+        value: author.id,
+        label: author.name,
     }));
 
     const [
         updateBlogResponse,
         { loading: blogLoading },
-    ] = useMutation<UpdateBlogMutation, UpdateBlogMutationVariables>(
-        UPDATE_BLOG,
-        {
-            onCompleted: (response) => {
-                const archiveEvent = response.updateBlog as BlogTypeMutationResponseType;
-                const { ok, errors } = archiveEvent;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Blog is successfully Updated',
-                        { variant: 'success' },
-                    );
-                }
-            },
-            onError: () => {
+    ] = useMutation<UpdateBlogMutation, UpdateBlogMutationVariables>(UPDATE_BLOG, {
+        onCompleted: (response) => {
+            const archiveEvent = response.updateBlog as BlogTypeMutationResponseType;
+            const { ok, errors } = archiveEvent;
+            if (errors) {
+                const errorMessages = errors
+                    ?.map((message: { messages: string }) => message.messages)
+                    .filter((msg: string) => msg)
+                    .join(', ');
+                alert.show(errorMessages);
+            } else if (ok) {
                 alert.show(
-                    'Failed to update a blog',
-                    { variant: 'danger' },
+                    'Blog is successfully Updated',
+                    { variant: 'success' },
                 );
-            },
+            }
         },
+        onError: () => {
+            alert.show(
+                'Failed to update a blog',
+                { variant: 'danger' },
+            );
+        },
+    });
+
+    const handleEditBlogSubmit = useCallback(
+        (finalValue: PartialFormType) => {
+            const formattedValue = {
+                ...finalValue,
+                author: {
+                    connect: {
+                        id: finalValue.author,
+                    },
+                },
+            };
+
+            updateBlogResponse({
+                variables: {
+                    pk: id,
+                    data: formattedValue as UpdateBlogInput,
+                },
+                context: {
+                    hasUpload: true,
+                },
+            });
+        },
+        [updateBlogResponse, id],
     );
-
-    const handleEditBlogSubmit = useCallback((finalValue: PartialFormType) => {
-        const formattedValue = {
-            ...finalValue,
-            author: finalValue.author ? { id: finalValue.author } : undefined,
-        };
-
-        updateBlogResponse({
-            variables: {
-                pk: initialData?.blogId ?? '',
-                data: formattedValue as UpdateBlogInput,
-            },
-            context: {
-                hasUpload: true,
-            },
-        });
-    }, [initialData, updateBlogResponse]);
 
     const handleSubmit = useCallback(() => {
         createSubmitHandler(validate, setError, handleEditBlogSubmit)();
@@ -245,65 +231,63 @@ export function Component(props: Props) {
     const error = getErrorObject(formError);
 
     return (
-        <form onSubmit={handleSubmit}>
-            <Container
-                className={styles.container}
-                heading="Edit Blog"
-                footerContent={(
-                    <div className={styles.footerContent}>
-                        <Button
-                            name="cancel"
-                            variant="default"
-                            onClick={() => {}}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            name="save"
-                            variant="primary"
-                            onClick={handleSubmit}
-                            disabled={pristine || blogLoading}
-                        >
-                            Save
-                        </Button>
-                    </div>
-                )}
+        <Container
+            className={styles.container}
+            showHeader
+            heading="Edit Blog"
+            actions={(
+                <div className={styles.footerContent}>
+                    <Button
+                        name="cancel"
+                        variant="default"
+                        onClick={() => {}}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        name="save"
+                        variant="primary"
+                        onClick={handleSubmit}
+                        disabled={pristine || blogLoading}
+                    >
+                        Save
+                    </Button>
+                </div>
+            )}
+        >
+            <form
+                className={styles.form}
+                onSubmit={handleSubmit}
             >
-                <MarkdownEditor
-                    label="Blog Title"
+                <TextInput
+                    label="Title"
                     name="title"
-                    value={value.title as string | undefined}
+                    value={value.title}
+                    error={error?.title}
                     onChange={setFieldValue}
-                    height={50}
                 />
-                <MarkdownEditor
+                <TextArea
+                    className={styles.fullSizeInput}
                     label="Description"
                     name="description"
                     value={value.description}
+                    error={error?.description}
                     onChange={setFieldValue}
-                    height={100}
-                />
-                <SelectInput
-                    label="Authors"
-                    name="author"
-                    options={authorOptions}
-                    value={value.author}
-                    keySelector={(option) => option.value}
-                    labelSelector={(option) => option.label}
-                    onChange={setFieldValue}
-                />
-                <MarkdownEditor
-                    label="Cover Image URL"
-                    name="coverImage"
-                    value={value.coverImage}
-                    onChange={setFieldValue}
-                    height={50}
                 />
                 <DateInput
                     label="Published date"
                     name="publishedDate"
                     value={value.publishedDate}
                     error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
+                    onChange={setFieldValue}
+                />
+                <SelectInput
+                    label="Authors"
+                    name="author"
+                    options={authorOptions}
+                    value={value.author}
+                    keySelector={authorKeySelector}
+                    labelSelector={authorLabelSelector}
                     onChange={setFieldValue}
                 />
                 <SelectInput
@@ -315,13 +299,6 @@ export function Component(props: Props) {
                     labelSelector={statusLabelSelector}
                     value={value.status}
                     onChange={setFieldValue}
-                />
-                <MarkdownEditor
-                    label="Blog Content"
-                    name="content"
-                    value={value.content}
-                    onChange={setFieldValue}
-                    height={200}
                 />
                 <div>
                     <div>Cover Image</div>
@@ -345,8 +322,16 @@ export function Component(props: Props) {
                         <div>{error.coverImage}</div>
                     )}
                 </div>
-            </Container>
-        </form>
+                <MarkdownEditor
+                    label="Blog Content"
+                    name="content"
+                    value={value.content}
+                    onChange={setFieldValue}
+                    height={400}
+                />
+            </form>
+
+        </Container>
     );
 }
 

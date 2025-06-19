@@ -1,6 +1,16 @@
 .container {
-    padding: var(--cms-ui-spacing-lg);
-    
+    padding: var(--cms-ui-spacing-lg) var(--cms-ui-spacing-2xl);
+
+
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--cms-ui-spacing-md);
+    }
+
+    .full-size-input {
+        grid-column: 1 / -1;
+    }
     .footer-content{
         display: flex;
         justify-content: flex-end;

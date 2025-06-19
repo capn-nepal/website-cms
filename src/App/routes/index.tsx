@@ -162,9 +162,10 @@ const events = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
+
 const editBlog = customWrapRoute({
     parent: homeLayout,
-    path: 'edit-blog',
+    path: 'edit-blog/:id',
     component: {
         render: () => import('#views/Blogs/EditBlog'),
         props: {},
