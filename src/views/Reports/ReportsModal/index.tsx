@@ -17,7 +17,6 @@ import {
     Button,
     DateInput,
     Modal,
-    SelectInput,
     TextArea,
     TextInput,
 } from '@togglecorp/toggle-ui';
@@ -28,7 +27,6 @@ import {
     CreateReportMutation,
     CreateReportMutationVariables,
     ReportTypeMutationResponseType,
-    StatusEnum,
     UpdateReportInput,
     UpdateReportMutation,
     UpdateReportMutationVariables,
@@ -47,7 +45,6 @@ const CREATE_REPORT = gql`
                     description
                     id
                     publishedDate
-                    isDeleted
                     reportFile {
                         url
                     }
@@ -75,7 +72,6 @@ const UPDATE_REPORT = gql`
                     description
                     id
                     publishedDate
-                    isDeleted
                     reportFile {
                         url
                     }
@@ -97,21 +93,12 @@ interface Props {
     onClose: () => void;
     title: string;
     initialValues?: Partial<UpdateReportInput & { id: string }>;
+    reportsRefetch:()=> void;
 }
-const statusOptions: {
-    label: string;
-    status: StatusEnum;
-}[] = [
-    { status: 'DRAFT', label: 'Draft' },
-    { status: 'PUBLISHED', label: 'Published' },
-];
 
 type PartialFormType = Partial<CreateReportInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
-
-const keySelector = (option: { status: StatusEnum }) => option.status;
-const labelSelector = (option: { label: string }) => option.label;
 
 const formSchema: FormSchema = {
     fields: (): FormSchemaFields => ({
@@ -127,10 +114,6 @@ const formSchema: FormSchema = {
             required: true,
             requiredValidation: requiredStringCondition,
         },
-        status: {
-            required: true,
-            requiredValidation: requiredStringCondition,
-        },
         reportFile: {},
     }),
 };
@@ -140,6 +123,7 @@ function ReportModal(props: Props) {
         onClose,
         title,
         initialValues,
+        reportsRefetch,
     } = props;
     const alert = useAlert();
 
@@ -147,13 +131,10 @@ function ReportModal(props: Props) {
         title: initialValues?.title || '',
         description: initialValues?.description || '',
         publishedDate: initialValues?.publishedDate || undefined,
-        status: initialValues?.status,
         reportFile: initialValues?.reportFile,
     };
 
-    const [filePreview, setFilePreview] = useState<File | null>(
-        initialValues?.reportFile ? initialValues.reportFile : null,
-    );
+    const [filePreview, setFilePreview] = useState<File | null>(null);
 
     const {
         value,
@@ -185,6 +166,7 @@ function ReportModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    reportsRefetch();
                 }
             },
             onError: () => {
@@ -303,16 +285,6 @@ function ReportModal(props: Props) {
                 value={value.publishedDate}
                 error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
                 onChange={setFieldValue}
-            />
-            <SelectInput
-                label="Status"
-                name="status"
-                value={value.status}
-                error={error?.status}
-                onChange={setFieldValue}
-                options={statusOptions}
-                keySelector={keySelector}
-                labelSelector={labelSelector}
             />
             <FileInput
                 label="Report File"

@@ -1,20 +1,10 @@
+// ReportActions.tsx
+
 import { useCallback } from 'react';
-import {
-    IoPencil,
-    IoTrash,
-} from 'react-icons/io5';
-import {
-    gql,
-    useMutation,
-} from '@apollo/client';
+import { IoPencil } from 'react-icons/io5';
 import { Button } from '@togglecorp/toggle-ui';
 
-import {
-    ArchiveReportMutation,
-    ArchiveReportMutationVariables,
-    ReportTypeMutationResponseType,
-    StatusEnum,
-} from '#generated/types/graphql';
+import { ReportsQuery } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
 
@@ -22,99 +12,35 @@ import ReportModal from '../ReportsModal';
 
 import styles from './styles.module.css';
 
+type ReportsItem = NonNullable<ReportsQuery['reports']['results'][number]>;
+
 interface Props {
-        report: {
-            id: string;
-            title: string;
-            description: string;
-            publishedDate: string;
-            status:StatusEnum;
-            reportFile: {
-                url: string;
-            } | null;
-        };
-        onEdit: (report: Props['report']) => void;
+    report: ReportsItem;
+    onEdit: (report: ReportsItem) => void;
+    reportRefetch: () => void;
 }
 
-const ARCHIVE_REPORT = gql`
-    mutation ArchiveReport($pk: ID!) {
-        archiveReport(pk: $pk) {
-            ... on ReportTypeMutationResponseType {
-                errors
-                ok
-                result {
-                    description
-                    id
-                    isDeleted
-                    publishedDate
-                    reportFile {
-                        url
-                    }
-                    status
-                    title
-                }
-            }
-            ... on OperationInfo {
-                __typename
-                messages {
-                    message
-                }
-            }
-        }
-    }
-`;
 function ReportActions(props: Props) {
     const {
         report,
         onEdit,
+        reportRefetch,
     } = props;
-    const alert = useAlert();
 
+    const alert = useAlert();
     const [
         showEditReportModal, {
             setTrue: setShowEditReportModalTrue,
             setFalse: setShowEditReportModalFalse,
-        }] = useBooleanState(false);
-
-    const [
-        triggerArchiveReport,
-        { loading: archiveLoading },
-    ] = useMutation<ArchiveReportMutation, ArchiveReportMutationVariables>(
-        ARCHIVE_REPORT,
-        {
-            onCompleted: (response) => {
-                const archiveEvent = response.archiveReport as ReportTypeMutationResponseType;
-                const { ok, errors } = archiveEvent;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string; }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Successfully Archived the Report',
-                        { variant: 'success' },
-                    );
-                }
-            },
-            onError: () => {
-                alert.show(
-                    'Failed to Archive the Report',
-                    { variant: 'danger' },
-                );
-            },
         },
-    );
-    const handleDelete = useCallback(() => {
-        triggerArchiveReport({ variables: { pk: report.id } });
-    }, [triggerArchiveReport, report.id]);
+    ] = useBooleanState(false);
 
     const handleEdit = useCallback(() => {
-        if (!report || !report.id) {
-            alert.show('Invalid event data');
+        if (!report?.id) {
+            alert.show('Invalid report data');
             return;
         }
+
         setShowEditReportModalTrue();
         onEdit(report);
     }, [report, alert, setShowEditReportModalTrue, onEdit]);
@@ -129,20 +55,12 @@ function ReportActions(props: Props) {
             >
                 <IoPencil />
             </Button>
-            <Button
-                name="delete"
-                onClick={handleDelete}
-                title="Delete"
-                transparent
-                disabled={archiveLoading}
-            >
-                <IoTrash />
-            </Button>
             {showEditReportModal && (
                 <ReportModal
                     onClose={setShowEditReportModalFalse}
                     title="Edit Report"
                     initialValues={report}
+                    reportsRefetch={reportRefetch}
                 />
             )}
         </div>

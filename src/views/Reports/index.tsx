@@ -12,7 +12,6 @@ import {
     Button,
     createDateColumn,
     createStringColumn,
-    createYesNoColumn,
     Pager,
     SelectInput,
     Table,
@@ -50,7 +49,6 @@ const REPORTS = gql`
             results {
                 description
                 id
-                isDeleted
                 publishedDate
                 reportFile {
                     url
@@ -61,11 +59,6 @@ const REPORTS = gql`
         }
     }
 `;
-
-const isDeleteOptions = [
-    { isDelete: true, label: 'True' },
-    { isDelete: false, label: 'False' },
-];
 
 const statusOptions: {
     label: string;
@@ -78,10 +71,6 @@ const statusOptions: {
 const PAGE_SIZE = 10;
 
 const keySelector = (item: ReportsItem) => item.id;
-const isDeleteKeySelector = (option: {
-    isDelete: boolean; label: string;
- }) => String(option.isDelete);
-const isDeleteLabelSelector = (option: { isDelete: boolean; label: string }) => option.label;
 const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
 
@@ -109,8 +98,7 @@ export function Component() {
 
     const variables = useMemo(() => {
         const filters: ReportsQueryVariables['filters'] = {
-            isDeleted: filter.isDeleted ?? false,
-            status: filter.status ?? 'PUBLISHED',
+            status: filter.status,
         };
 
         return {
@@ -124,25 +112,10 @@ export function Component() {
 
     const {
         data: reportsResponse,
+        refetch: reportsRefetch,
     } = useQuery<ReportsQuery, ReportsQueryVariables>(
         REPORTS,
         { variables },
-    );
-
-    const handleIsDeletedChange = useCallback(
-        (newValue: string | undefined) => {
-            let isDeleted;
-            if (newValue === 'true') {
-                isDeleted = true;
-            } else if (newValue === 'false') {
-                isDeleted = false;
-            } else {
-                isDeleted = undefined;
-            }
-
-            setFilterField(isDeleted, 'isDeleted');
-        },
-        [setFilterField],
     );
     const handleAddReport = useCallback(() => {
         setSelectedReport(null);
@@ -187,21 +160,22 @@ export function Component() {
             ),
             (_, item) => ({ url: item.reportFile.url }),
         ),
-        createYesNoColumn<ReportsItem, string | number>(
-            'isDeleted',
-            'Is Deleted',
-            (item) => item.isDeleted,
-        ),
-        createElementColumn<ReportsItem, string, { id: string; onDelete:(
-            id: string) => void }>(
-            'actions',
-            'Actions',
-            ReportActions,
-            (_key, item) => ({
-                report: item,
-            }),
-            ),
-    ]), []);
+        createElementColumn<ReportsItem, string, {
+            report: ReportsItem;
+            reportRefetch:(
+            ) => void;
+            onEdit: (report: ReportsItem) => void;
+                }>(
+                'actions',
+                'Actions',
+                ReportActions,
+                (_key, item) => ({
+                    report: item,
+                    reportRefetch: reportsRefetch,
+                    onEdit: setSelectedReport,
+                }),
+                ),
+    ]), [reportsRefetch]);
 
     return (
         <Container
@@ -212,15 +186,6 @@ export function Component() {
             heading="Reports Table"
             headingDescription={(
                 <div className={styles.filterActions}>
-                    <SelectInput
-                        placeholder="Is Deleted"
-                        name="isDeleted"
-                        options={isDeleteOptions}
-                        keySelector={isDeleteKeySelector}
-                        labelSelector={isDeleteLabelSelector}
-                        value={filter.isDeleted !== undefined ? String(filter.isDeleted) : null}
-                        onChange={handleIsDeletedChange}
-                    />
                     <SelectInput
                         placeholder="Status"
                         name="status"
@@ -264,6 +229,7 @@ export function Component() {
                 <ReportModal
                     onClose={setShowReportModalFalse}
                     title={selectedReport ? 'Edit Report' : 'Add Report'}
+                    reportsRefetch={reportsRefetch}
                 />
             )}
         </Container>
