@@ -72,6 +72,18 @@ export function Component() {
                         >
                             Youtube Videos
                         </NavigationTab>
+                        <NavigationTab
+                            to="voxpopSeasons"
+                            icon={<MdSmartDisplay />}
+                        >
+                            Voxpop Seasons
+                        </NavigationTab>
+                        <NavigationTab
+                            to="voxpopEpisodes"
+                            icon={<MdSmartDisplay />}
+                        >
+                            Voxpop Episodes
+                        </NavigationTab>
                     </>
                 )}
             >
