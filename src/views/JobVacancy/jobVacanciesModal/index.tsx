@@ -46,9 +46,6 @@ const CREATE_JOB_VACANCY = gql`
                     description
                     id
                     numberOfVacancies
-                    position {
-                        pk
-                    }
                 }
             }
             ... on OperationInfo {
@@ -72,9 +69,6 @@ const UPDATE_JOB_VACANCY = gql`
                     description
                     id
                     numberOfVacancies
-                    position {
-                        pk
-                    }
                 }
             }
             ... on OperationInfo {
@@ -88,7 +82,7 @@ const UPDATE_JOB_VACANCY = gql`
 `;
 
 const POSITIONS_QUERY = gql`
-    query Positions($pagination: OffsetPaginationInput) {
+    query Position($pagination: OffsetPaginationInput) {
         positions(pagination: $pagination) {
             results {
                 id
@@ -102,7 +96,9 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdateJobVacancyInput & { id: string }>;
+    jobVacancyRefetch: () => void;
 }
+
 const positionKeySelector = (option: { value: string; label: string }) => option.value;
 const positionLabelSelector = (option: { value: string; label: string }) => option.label;
 
@@ -135,6 +131,7 @@ function JobVacanciesModal(props: Props) {
         title,
         onClose,
         initialValues,
+        jobVacancyRefetch,
     } = props;
     const alert = useAlert();
 
@@ -185,6 +182,7 @@ function JobVacanciesModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    jobVacancyRefetch();
                 }
             },
             onError: () => {
@@ -218,6 +216,7 @@ function JobVacanciesModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    jobVacancyRefetch();
                 }
             },
             onError: () => {

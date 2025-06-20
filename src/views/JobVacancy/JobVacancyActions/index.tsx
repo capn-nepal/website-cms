@@ -12,24 +12,22 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     ArchiveJobVacancyMutation,
     ArchiveJobVacancyMutationVariables,
+    JobVacanciesQuery,
     JobVacancyTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import useBooleanState from '#hooks/useBooleanState';
+
+import JobVacanciesModal from '../jobVacanciesModal';
 
 import styles from './styles.module.css';
 
+type JobsItem = NonNullable<JobVacanciesQuery['jobVacancies']['results'][number]>;
+
 interface Props {
-    jobVacancy: {
-        id: string;
-        description: string;
-        deadline: string;
-        numberOfVacancies: number;
-        position: {
-            pk: string;
-        };
-    };
+    jobVacancy:JobsItem
     onEdit?: (event: Props['jobVacancy']) => void;
-    refetch?: () => void;
+    jobVacancyRefetch: () => void;
 }
 
 const ARCHIVE_JOB_VACANCY = gql`
@@ -43,9 +41,6 @@ const ARCHIVE_JOB_VACANCY = gql`
                     description
                     id
                     numberOfVacancies
-                    position {
-                        pk
-                    }
                 }
             }
             ... on OperationInfo {
@@ -62,9 +57,14 @@ function JobVacancyActions(props: Props) {
     const {
         jobVacancy,
         onEdit,
-        refetch,
+        jobVacancyRefetch,
     } = props;
     const alert = useAlert();
+    const [
+        showEditJobVacancyModal, {
+            setTrue: setShowEditJobVacancyModalTrue,
+            setFalse: setShowEditJobVacancyModalFalse,
+        }] = useBooleanState(false);
 
     const [
         triggerArchiveJobVacancy,
@@ -87,7 +87,7 @@ function JobVacancyActions(props: Props) {
                         'Successfully archived the Job Vacancy',
                         { variant: 'success' },
                     );
-                    refetch?.();
+                    jobVacancyRefetch();
                 }
             },
             onError: () => {
@@ -109,12 +109,15 @@ function JobVacancyActions(props: Props) {
     }, [triggerArchiveJobVacancy, jobVacancy.id]);
 
     const handleEdit = useCallback(() => {
-        if (!jobVacancy) {
-            alert.show('Invalid data');
+        if (!jobVacancy || !jobVacancy.id) {
+            alert.show('Invalid event data');
             return;
         }
-        onEdit?.(jobVacancy);
-    }, [jobVacancy, onEdit, alert]);
+        setShowEditJobVacancyModalTrue();
+        if (onEdit) {
+            onEdit(jobVacancy);
+        }
+    }, [jobVacancy, setShowEditJobVacancyModalTrue, onEdit, alert]);
 
     return (
         <div className={styles.vacancyActions}>
@@ -135,7 +138,16 @@ function JobVacancyActions(props: Props) {
             >
                 <IoTrash />
             </Button>
+            {showEditJobVacancyModal && (
+                <JobVacanciesModal
+                    onClose={setShowEditJobVacancyModalFalse}
+                    title="Edit Job Vacancy"
+                    initialValues={jobVacancy}
+                    jobVacancyRefetch={jobVacancyRefetch}
+                />
+            )}
         </div>
+
     );
 }
 

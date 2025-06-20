@@ -60,9 +60,6 @@ const POSITIONS = gql`
                 description
                 id
                 numberOfVacancies
-                position {
-                    pk
-                }
             }
             totalCount
         }
@@ -102,7 +99,7 @@ export function Component() {
     };
     const {
         data: jobVacanciesResponse,
-        refetch,
+        refetch: jobVacancyRefetch,
     } = useQuery<JobVacanciesQuery, JobVacanciesQueryVariables>(
         POSITIONS,
         { variables },
@@ -146,36 +143,23 @@ export function Component() {
             'No.of Vacancies',
             (item) => item.numberOfVacancies,
         ),
-        createStringColumn<JobsItem, string>(
-            'positions',
-            'Positions',
-            (item) => item.position.pk,
-        ),
         createElementColumn<JobsItem, string, {
             jobVacancy: JobsItem;
             onEdit:(
-                job: JobsItem) => void;
-            refetch: () => void;
+                jobs: JobsItem) => void;
+            jobVacancyRefetch: () => void;
                 }>(
                 'actions',
                 'Actions',
                 JobVacancyActions,
                 (_key, item) => ({
                     jobVacancy: item,
-                    onEdit: (job) => {
-                        setSelectedJob({
-                            ...job,
-                            position: {
-                                pk: job.position.pk,
-                            },
-                        });
-                        setShowJobVacancyModalTrue();
-                    },
-                    refetch,
+                    jobVacancyRefetch,
+                    onEdit: setSelectedJob,
                 }),
                 ),
 
-    ], [refetch, setShowJobVacancyModalTrue]);
+    ], [jobVacancyRefetch]);
 
     return (
         <Container
@@ -230,6 +214,7 @@ export function Component() {
                     onClose={setShowJobVacancyModalFalse}
                     title={selectedJob ? 'Edit Job' : 'Add Job'}
                     initialValues={selectedJob}
+                    jobVacancyRefetch={jobVacancyRefetch}
                 />
             )}
         </Container>
