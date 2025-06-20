@@ -81,6 +81,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdateVoxPopSeasonInput & { id: string }>;
+    voxpopSeasonRefetch: () => void;
 }
 
 type PartialFormType = Partial<CreateVoxPopSeasonInput>;
@@ -106,6 +107,7 @@ function VoxpopSeasonModal(props: Props) {
         onClose,
         title,
         initialValues,
+        voxpopSeasonRefetch,
     } = props;
     const alert = useAlert();
     const defaultFormValues: Partial<CreateVoxPopSeasonInput> = {
@@ -145,6 +147,7 @@ function VoxpopSeasonModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    voxpopSeasonRefetch();
                 }
             },
             onError: () => {
@@ -178,6 +181,7 @@ function VoxpopSeasonModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    voxpopSeasonRefetch();
                 }
             },
             onError: () => {

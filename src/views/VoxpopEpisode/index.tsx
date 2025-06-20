@@ -57,9 +57,6 @@ const VOX_POP_EPISODE = gql`
                 }
                 title
                 videoUrl
-                voxpopSeason {
-                    pk
-                }
             }
             totalCount
         }
@@ -114,7 +111,7 @@ export function Component() {
 
     const {
         data: voxpopEpisodeResponse,
-        refetch,
+        refetch: voxpopEpisodeRefetch,
     } = useQuery<VoxpopEpisodesQuery, VoxpopEpisodesQueryVariables>(
         VOX_POP_EPISODE,
         { variables },
@@ -146,18 +143,13 @@ export function Component() {
             'Title',
             (item) => item.title,
         ),
-        createStringColumn<VoxpopEpisodeItem, string>(
-            'voxpopSeason',
-            'Voxpop Season',
-            (item) => item.voxpopSeason.pk,
-        ),
-        createNumberColumn<VoxpopEpisodeItem, number>(
+        createStringColumn<VoxpopEpisodeItem, string | number>(
             'episodeNumber',
             'Episode Number',
-            (item) => item.episodeNumber,
+            (item) => String(item.episodeNumber),
         ),
         createDateColumn<VoxpopEpisodeItem, string>(
-            'releasedDate',
+            'releaseDate',
             'Released Date',
             (item) => item.releaseDate,
         ),
@@ -176,7 +168,7 @@ export function Component() {
             ),
             (_, item) => ({ url: item.videoUrl }),
         ),
-        createYesNoColumn<VoxpopEpisodeItem, boolean>(
+        createYesNoColumn<VoxpopEpisodeItem, boolean | undefined>(
             'isArchived',
             'Is Archived',
             (item) => item.isArchived,
@@ -195,22 +187,20 @@ export function Component() {
             voxpopEpisode: VoxpopEpisodeItem;
             onEdit:(
                 episode: VoxpopEpisodeItem) => void;
-            refetch: () => void;
+                voxpopEpisodeRefetch:(
+                ) => void;
                 }>(
                 'actions',
                 'Actions',
                 VoxpopEpisodeActions,
                 (_key, item) => ({
                     voxpopEpisode: item,
-                    onEdit: (episode) => {
-                        setSelectedEpisode(episode);
-                        setShowVoxpopEpisodeModalTrue();
-                    },
-                    refetch,
+                    voxpopEpisodeRefetch,
+                    onEdit: setSelectedEpisode,
                 }),
                 ),
 
-    ]), [refetch, setShowVoxpopEpisodeModalTrue]);
+    ]), [voxpopEpisodeRefetch]);
 
     const data = voxpopEpisodeResponse?.voxpopEpisodes.results;
 
@@ -266,10 +256,8 @@ export function Component() {
                 <VoxpopEpisodeModal
                     onClose={setShowVoxpopEpisodeModalFalse}
                     title={selectedEpisode ? 'Edit Voxpop episode' : 'Add Voxpop episode'}
-                    initialValues={{
-                        ...selectedEpisode,
-                        voxpopSeason: selectedEpisode?.voxpopSeason?.pk || undefined,
-                    }}
+                    initialValues={selectedEpisode || undefined}
+                    voxpopEpisodeRefetch={voxpopEpisodeRefetch}
                 />
             )}
         </Container>

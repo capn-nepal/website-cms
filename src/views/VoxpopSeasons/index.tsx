@@ -93,6 +93,7 @@ export function Component() {
     };
     const {
         data: voxpopSeasonsResponse,
+        refetch: voxpopSeasonRefetch,
     } = useQuery<VoxpopSeasonsQuery, VoxpopSeasonsQueryVariables>(
         VOX_POP_SEASONS,
         { variables },
@@ -120,15 +121,20 @@ export function Component() {
         ),
         createElementColumn<VoxpopSeasonsItem, string, {
             voxpopSeason: VoxpopSeasonsItem;
-        }>(
-            'actions',
-            'Actions',
-            VoxpopSeasonActions,
-            (_key, item) => ({
-                voxpopSeason: item,
-            }),
-        ),
-    ]), []);
+            voxpopSeasonRefetch:(
+            ) => void;
+            onEdit: (report:VoxpopSeasonsItem) => void;
+                }>(
+                'actions',
+                'Actions',
+                VoxpopSeasonActions,
+                (_key, item) => ({
+                    voxpopSeason: item,
+                    voxpopSeasonRefetch,
+                    onEdit: setSelectedVoxpopSeason,
+                }),
+                ),
+    ]), [voxpopSeasonRefetch]);
 
     const data = voxpopSeasonsResponse?.voxpopSeasons.results;
     return (
@@ -181,6 +187,7 @@ export function Component() {
                     onClose={setShowVoxpopSeasonModalFalse}
                     title={selectedVoxpopSeason ? 'Edit Voxpop season' : 'Add Voxpop season'}
                     initialValues={selectedVoxpopSeason || undefined}
+                    voxpopSeasonRefetch={voxpopSeasonRefetch}
                 />
             )}
         </Container>

@@ -12,31 +12,22 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     ArchiveVoxpopEpisodeMutation,
     ArchiveVoxpopEpisodeMutationVariables,
+    VoxpopEpisodesQuery,
     VoxPopEpisodeTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import useBooleanState from '#hooks/useBooleanState';
+
+import VoxpopEpisodeModal from '../VoxpopEpisodeModal';
 
 import styles from './styles.module.css';
 
-interface Thumbnail {
-    url: string;
-}
+type VoxpopEpisodeItem = NonNullable<VoxpopEpisodesQuery['voxpopEpisodes']['results'][number]>;
 
 interface Props {
-    voxpopEpisode: {
-        id: string;
-        title: string;
-        episodeNumber: number;
-        isArchived: boolean;
-        voxpopSeason: {
-            pk: string;
-        };
-        releaseDate: string | null;
-        thumbnail: Thumbnail | null;
-        videoUrl: string | null;
-    };
-    onEdit: (podcastEpisode: Props['voxpopEpisode']) => void;
-    refetch: () => void;
+    voxpopEpisode:VoxpopEpisodeItem
+    onEdit: (voxpopEpisode: Props['voxpopEpisode']) => void;
+    voxpopEpisodeRefetch: () => void;
 }
 
 const ARCHIVE_VOX_POP_EPISODE = gql`
@@ -49,9 +40,6 @@ const ARCHIVE_VOX_POP_EPISODE = gql`
                     episodeNumber
                     id
                     isArchived
-                    voxpopSeason {
-                        pk
-                    }
                     releaseDate
                     thumbnail {
                         url
@@ -71,8 +59,14 @@ const ARCHIVE_VOX_POP_EPISODE = gql`
 `;
 
 function VoxpopEpisodeActions(props: Props) {
-    const { voxpopEpisode, onEdit, refetch } = props;
+    const { voxpopEpisode, onEdit, voxpopEpisodeRefetch } = props;
     const alert = useAlert();
+    const [
+        showEditVoxpopEpisodeModal, {
+            setTrue: setShowEditVoxpopEpisodeModalTrue,
+            setFalse: setShowEditVoxpopEpisodeModalFalse,
+        }] = useBooleanState(false);
+
     const [
         triggerArchiveVoxpopEpisode,
     ] = useMutation<ArchiveVoxpopEpisodeMutation, ArchiveVoxpopEpisodeMutationVariables>(
@@ -93,7 +87,7 @@ function VoxpopEpisodeActions(props: Props) {
                         'Successfully Archived VoxPop Episode',
                         { variant: 'success' },
                     );
-                    refetch();
+                    voxpopEpisodeRefetch();
                 }
             },
             onError: () => {
@@ -106,12 +100,13 @@ function VoxpopEpisodeActions(props: Props) {
     );
 
     const handleEdit = useCallback(() => {
-        if (!voxpopEpisode?.id) {
+        if (!voxpopEpisode || !voxpopEpisode.id) {
             alert.show('Invalid data');
             return;
         }
+        setShowEditVoxpopEpisodeModalTrue();
         onEdit(voxpopEpisode);
-    }, [voxpopEpisode, onEdit, alert]);
+    }, [voxpopEpisode, setShowEditVoxpopEpisodeModalTrue, onEdit, alert]);
 
     const handleDelete = useCallback(() => {
         triggerArchiveVoxpopEpisode({
@@ -142,6 +137,14 @@ function VoxpopEpisodeActions(props: Props) {
             >
                 <IoTrash />
             </Button>
+            { showEditVoxpopEpisodeModal && (
+                <VoxpopEpisodeModal
+                    onClose={setShowEditVoxpopEpisodeModalFalse}
+                    title="Edit VoxPop Episode"
+                    initialValues={voxpopEpisode}
+                    voxpopEpisodeRefetch={voxpopEpisodeRefetch}
+                />
+            )}
         </div>
     );
 }

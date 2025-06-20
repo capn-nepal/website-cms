@@ -48,9 +48,6 @@ const CREATE_VOX_POP_EPISODE = gql`
                     episodeNumber
                     id
                     isArchived
-                    voxpopSeason {
-                        pk
-                    }
                      releaseDate
                      thumbnail {
                          url
@@ -78,9 +75,6 @@ const UPDATE_VOX_POP_EPISODE = gql`
                     episodeNumber
                     id
                     isArchived
-                    voxpopSeason {
-                        pk
-                    }
                      releaseDate
                      thumbnail {
                         url
@@ -113,6 +107,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdateVoxPopEpisodeInput & { id: string }>;
+    voxpopEpisodeRefetch: () => void;
 }
 const seasonKeySelector = (option: { value: string; label: string }) => option.value;
 const seasonLabelSelector = (option: { value: string; label: string }) => option.label;
@@ -146,6 +141,7 @@ function VoxpopEpisodeModal(props: Props) {
         onClose,
         title,
         initialValues,
+        voxpopEpisodeRefetch,
     } = props;
 
     const alert = useAlert();
@@ -200,6 +196,7 @@ function VoxpopEpisodeModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    voxpopEpisodeRefetch();
                 }
             },
             onError: () => {
@@ -233,6 +230,7 @@ function VoxpopEpisodeModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    voxpopEpisodeRefetch();
                 }
             },
             onError: () => {
