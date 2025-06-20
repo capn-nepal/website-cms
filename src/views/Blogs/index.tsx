@@ -9,7 +9,6 @@ import {
 } from '@apollo/client';
 import {
     Button,
-    Chip,
     createDateColumn,
     createStringColumn,
     createYesNoColumn,
@@ -34,7 +33,7 @@ import BlogModal from './BlogModal';
 
 import styles from './styles.module.css';
 
-type BlogsItem = NonNullable<NonNullable<NonNullable<BlogsQuery>['blogs']>['results']>[number] & { serialNumber: string };
+type BlogsItem = NonNullable<NonNullable<NonNullable<BlogsQuery>['blogs']>['results']>[number];
 
 const PAGE_SIZE = 10;
 
@@ -111,15 +110,17 @@ export function Component() {
         }
         : undefined;
 
-    const variables = {
+    const variables: BlogsQueryVariables = {
         pagination: {
             limit: PAGE_SIZE,
             offset: (page - 1) * PAGE_SIZE,
         },
         filters,
     };
+
     const {
         data: blogsResponse,
+        refetch: blogsRefetch,
     } = useQuery<BlogsQuery, BlogsQueryVariables>(
         BLOGS,
         {
@@ -127,19 +128,9 @@ export function Component() {
         },
     );
 
-    const data = useMemo(() => (
-        blogsResponse?.blogs.results?.map((user, index) => ({
-            ...user,
-            serialNumber: (page - 1) * PAGE_SIZE + index + 1,
-        })) as unknown as BlogsItem[]
-    ), [blogsResponse, page]);
+    const data = blogsResponse?.blogs.results;
 
     const columns = useMemo(() => ([
-        createStringColumn<BlogsItem, string | number>(
-            'sn',
-            'S.N',
-            (item) => String(item.serialNumber),
-        ),
         createStringColumn<BlogsItem, string | number>(
             'title',
             'Title',
@@ -150,16 +141,13 @@ export function Component() {
             'Description',
             (item) => item.description,
         ),
+
         createStringColumn<BlogsItem, string | number>(
             'author',
             'Author',
             (item) => item.author?.name,
         ),
-        createStringColumn<BlogsItem, string | number>(
-            'status',
-            'Status',
-            (item) => item.status,
-        ),
+
         createDateColumn<BlogsItem, string | number>(
             'publishedDate',
             'Published Date',
@@ -170,15 +158,20 @@ export function Component() {
             'Featured',
             (item) => item.featured,
         ),
-        createElementColumn<BlogsItem, string, { imageUrl?: string }>(
-            'image',
-            'Image',
-            ({ imageUrl }) => (
-                imageUrl && typeof imageUrl === 'string'
-                    ? <img src={imageUrl} alt="" style={{ width: 40, height: 40, borderRadius: 4 }} />
-                    : <Chip label="No Image" variant="default" />
+        createElementColumn<BlogsItem, string, { url: string }>(
+            'coverImage',
+            'Cover Image',
+            ({ url }) => (
+                <a
+                    className={styles.actions}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {url}
+                </a>
             ),
-            (_key, item: BlogsItem) => ({ imageUrl: item.coverImage?.url }),
+            (_, item) => ({ url: item.coverImage?.url ?? '' }),
         ),
         createElementColumn<BlogsItem, string, { id: string }>(
             'actions',
@@ -198,7 +191,7 @@ export function Component() {
             headingLevel={6}
             heading="Blogs Table"
             headingDescription={(
-                <div className={styles.actions}>
+                <div className={styles.filterActions}>
                     <TextInput
                         placeholder="Title"
                         onChange={setFilterField}
@@ -247,9 +240,9 @@ export function Component() {
             {showBlogModal && (
                 <BlogModal
                     onClose={setShowBlogModalFalse}
+                    addBlogsRefetch={blogsRefetch}
                 />
             )}
-
         </Container>
     );
 }

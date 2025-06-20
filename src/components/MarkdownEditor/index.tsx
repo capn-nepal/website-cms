@@ -1,34 +1,39 @@
+import '@toast-ui/editor/dist/toastui-editor.css';
+
 import {
     useCallback,
-    useMemo,
+    useRef,
 } from 'react';
+import { Editor } from '@toast-ui/react-editor';
 import { _cs } from '@togglecorp/fujs';
 import {
     InputContainer,
     InputContainerProps,
 } from '@togglecorp/toggle-ui';
-import MDEditor, {
-    commands,
-    MDEditorProps,
-} from '@uiw/react-md-editor';
-import rehypeSanitize from 'rehype-sanitize';
 
 import styles from './styles.module.css';
 
+/** @knipignore */
 export type MarkdownEditorProps<T> = Omit<InputContainerProps, 'input' | 'onChange' | 'name' | 'value'> & {
     name: T;
     onChange: (value: string | undefined, name: T) => void;
     editorClassName?: string;
-} & Omit<MDEditorProps, 'onChange' | 'className'>;
+    value?: string;
+    disabled?: boolean;
+    height?: string;
+};
 
 function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
     const {
+        name,
+        value,
+        onChange,
+        editorClassName,
         actions,
         actionsContainerClassName,
         className,
         disabled,
         error,
-        errorContainerClassName,
         hint,
         hintContainerClassName,
         icons,
@@ -38,34 +43,23 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
         labelContainerClassName,
         readOnly,
         uiMode,
-
-        name,
-        value,
-        onChange,
-        commands: commandsFromProps,
-        preview = 'edit',
-        previewOptions: previewOptionsFromProps,
-        editorClassName,
         height,
     } = props;
 
-    const handleChange = useCallback((val: string | undefined) => {
-        onChange(val, name);
-    }, [onChange, name]);
+    const editorRef = useRef<Editor>(null);
 
-    const previewOptions = useMemo(() => ({
-        rehypePlugins: [rehypeSanitize],
-        ...previewOptionsFromProps,
-    }), [previewOptionsFromProps]);
+    const handleChange = useCallback(() => {
+        const markdown = editorRef.current?.getInstance().getMarkdown();
+        onChange(markdown, name);
+    }, [onChange, name]);
 
     return (
         <InputContainer
             actions={actions}
             actionsContainerClassName={actionsContainerClassName}
-            className={className}
+            className={_cs(styles.container, className)}
             disabled={disabled}
             error={error}
-            errorContainerClassName={errorContainerClassName}
             hint={hint}
             hintContainerClassName={hintContainerClassName}
             icons={icons}
@@ -76,23 +70,40 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
             readOnly={readOnly}
             uiMode={uiMode}
             input={(
-                <div data-color-mode="light" className={styles.container}>
-                    <div className="wmde-markdown-var" />
-                    <MDEditor
-                        className={_cs(editorClassName, styles.markdownEditor)}
-                        value={value}
-                        onChange={handleChange}
-                        commands={[
-                            commands.bold,
-                            commands.italic,
-                            ...(commandsFromProps ?? []),
-                        ]}
-                        preview={preview}
-                        previewOptions={previewOptions}
-                        height={height}
-                    />
-                </div>
+                <Editor
+                    ref={editorRef}
+                    initialValue={value}
+                    previewStyle="vertical"
+                    height={height}
+                    initialEditType="markdown"
+                    useCommandShortcut
+                    hideModeSwitch
+                    onChange={handleChange}
+                    className={_cs(styles.editor, editorClassName)}
+                    toolbarItems={[
+                        ['heading', 'bold', 'italic', 'strike'],
+                        ['hr', 'quote'],
+                        ['ul', 'ol', 'task'],
+                        ['table', 'link'],
+                        ['code', 'codeblock'],
+                    ]}
+                    hooks={{
+                        addImageBlobHook: async (blob: string | Blob, callback: (
+                                arg0: string, arg1: string) => void) => {
+                            const formData = new FormData();
+                            formData.append('file', blob);
 
+                            const response = await fetch('/upload-image', {
+                                method: 'POST',
+                                body: formData,
+                            });
+
+                            const result = await response.json();
+                            callback(result.imageUrl, 'image');
+                        },
+                    }}
+
+                />
             )}
         />
     );

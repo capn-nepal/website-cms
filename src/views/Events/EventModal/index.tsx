@@ -145,8 +145,8 @@ function EventModal(props: Props) {
         CREATE_EVENT,
         {
             onCompleted: (response) => {
-                const archiveEvent = response.createEvent as EventTypeMutationResponseType;
-                const { ok, errors } = archiveEvent;
+                const addEvent = response.createEvent as EventTypeMutationResponseType;
+                const { ok, errors } = addEvent;
                 if (errors) {
                     const errorMessages = errors
                         ?.map((message: { messages: string }) => message.messages)

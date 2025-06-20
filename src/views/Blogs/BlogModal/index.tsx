@@ -80,6 +80,7 @@ const AUTHORS_QUERY = gql`
 
 interface Props {
     onClose: () => void;
+    addBlogsRefetch:()=> void;
 }
 const authorKeySelector = (option: { value: string; label: string }) => option.value;
 const authorLabelSelector = (option: { value: string; label: string }) => option.label;
@@ -119,6 +120,7 @@ const defaultFormValues: PartialFormType = {};
 function BlogModal(props: Props) {
     const {
         onClose,
+        addBlogsRefetch,
     } = props;
     const alert = useAlert();
 
@@ -138,9 +140,10 @@ function BlogModal(props: Props) {
         AUTHORS_QUERY,
     );
 
-    const positionOptions = authorsResponse?.authors.results.map((position) => ({
-        value: position.id,
-        label: position.name,
+    const authorOptions = authorsResponse?.authors.results.map((author: {
+        id: string; name: string; }) => ({
+        value: author.id,
+        label: author.name,
     })) ?? [];
     const [
         createBlogResponse,
@@ -163,6 +166,7 @@ function BlogModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    addBlogsRefetch();
                 }
             },
             onError: () => {
@@ -208,7 +212,7 @@ function BlogModal(props: Props) {
             className={styles.blogModal}
             heading="Add Blog"
             onClose={onClose}
-            size="medium"
+            size="large"
             footer={(
                 <div className={styles.footerContent}>
                     <Button
@@ -254,7 +258,7 @@ function BlogModal(props: Props) {
             <SelectInput
                 label="Authors"
                 name="author"
-                options={positionOptions}
+                options={authorOptions}
                 value={value.author}
                 error={error?.author}
                 keySelector={authorKeySelector}
@@ -288,7 +292,7 @@ function BlogModal(props: Props) {
                 name="content"
                 value={value.content}
                 onChange={setFieldValue}
-                height={400}
+                height="300px"
             />
         </Modal>
     );

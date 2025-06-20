@@ -96,7 +96,7 @@ export function Component() {
             offset: (page - 1) * PAGE_SIZE,
         },
         filters: {
-            isDeleted: filter.isDeleted ?? false, // FIXME: update after server side is fixed
+            isDeleted: filter.isDeleted,
         },
     };
     const {
