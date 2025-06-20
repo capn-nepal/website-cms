@@ -12,30 +12,22 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     ArchivePodcastEpisodeMutation,
     ArchivePodcastEpisodeMutationVariables,
+    PodcastEpisodesQuery,
     PodcastEpisodeTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import useBooleanState from '#hooks/useBooleanState';
+
+import PodcastEpisodeModal from '../PodcastEpisodeModal';
 
 import styles from './styles.module.css';
 
-interface Thumbnail {
-    url: string;
-}
+type PodcastEpisodeItem = NonNullable<PodcastEpisodesQuery['podcastEpisodes']['results'][number]>;
 
 interface Props {
-    podcastEpisode:{
-        id: string;
-        title: string;
-        episodeNumber: number;
-        isArchived: boolean;
-        podcastSeason: {
-            pk: string;
-        }
-        releaseDate: string | null;
-        thumbnail: Thumbnail | null;
-        videoUrl: string | null;
-    }
+    podcastEpisode: PodcastEpisodeItem
     onEdit: (podcastEpisode: Props['podcastEpisode']) => void;
+    podcastEpisodeRefetch:()=> void;
 }
 
 const ARCHIVE_PODCAST_EPISODE = gql`
@@ -48,9 +40,6 @@ const ARCHIVE_PODCAST_EPISODE = gql`
                     episodeNumber
                     id
                     isArchived
-                    podcastSeason {
-                        pk
-                    }
                     releaseDate
                     thumbnail {
                         url
@@ -71,9 +60,17 @@ const ARCHIVE_PODCAST_EPISODE = gql`
 
 function PodcastEpisodeActions(props: Props) {
     const {
-        podcastEpisode, onEdit,
+        podcastEpisode,
+        onEdit,
+        podcastEpisodeRefetch,
     } = props;
     const alert = useAlert();
+    const [
+        showEditPodcastEpisodeModal, {
+            setTrue: setShowEditPodcastEpisodeModalTrue,
+            setFalse: setShowEditPodcastEpisodeModalFalse,
+        }] = useBooleanState(false);
+
     const [
         triggerArchivePodcastEpisode,
     ] = useMutation<ArchivePodcastEpisodeMutation, ArchivePodcastEpisodeMutationVariables>(
@@ -95,6 +92,7 @@ function PodcastEpisodeActions(props: Props) {
                         { variant: 'success' },
                     );
                 }
+                podcastEpisodeRefetch();
             },
             onError: () => {
                 alert.show(
@@ -106,12 +104,13 @@ function PodcastEpisodeActions(props: Props) {
     );
 
     const handleEdit = useCallback(() => {
-        if (!podcastEpisode?.id) {
-            alert.show('Invalid team member data');
+        if (!podcastEpisode || !podcastEpisode.id) {
+            alert.show('Invalid data');
             return;
         }
+        setShowEditPodcastEpisodeModalTrue();
         onEdit(podcastEpisode);
-    }, [podcastEpisode, onEdit, alert]);
+    }, [podcastEpisode, setShowEditPodcastEpisodeModalTrue, onEdit, alert]);
 
     const handleDelete = useCallback(() => {
         triggerArchivePodcastEpisode({
@@ -142,6 +141,14 @@ function PodcastEpisodeActions(props: Props) {
             >
                 <IoTrash />
             </Button>
+            { showEditPodcastEpisodeModal && (
+                <PodcastEpisodeModal
+                    onClose={setShowEditPodcastEpisodeModalFalse}
+                    title="Edit Podcast Episode"
+                    initialValues={podcastEpisode}
+                    podcastEpisodeRefetch={podcastEpisodeRefetch}
+                />
+            )}
         </div>
     );
 }

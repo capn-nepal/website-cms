@@ -51,9 +51,6 @@ const PODCAST_EPISODE = gql`
                 episodeNumber
                 id
                 isArchived
-                podcastSeason {
-                    pk
-                }
                 releaseDate
                 thumbnail {
                     url
@@ -114,6 +111,7 @@ export function Component() {
 
     const {
         data: podcastEpisodeResponse,
+        refetch: podcastEpisodeRefetch,
     } = useQuery<PodcastEpisodesQuery, PodcastEpisodesQueryVariables>(
         PODCAST_EPISODE,
         { variables },
@@ -145,21 +143,19 @@ export function Component() {
             'Title',
             (item) => item.title,
         ),
-        createStringColumn<PodcastEpisodeItem, string | number>(
-            'podcastSeason',
-            'Podcast Season',
-            (item) => item.podcastSeason?.pk,
-        ),
-        createNumberColumn<PodcastEpisodeItem, number>(
+
+        createNumberColumn<PodcastEpisodeItem, string | number>(
             'EpisodeNumber',
             'Episode  number',
             (item) => item.episodeNumber,
         ),
-        createDateColumn<PodcastEpisodeItem, string | number>(
+
+        createDateColumn<PodcastEpisodeItem, string>(
             'releasedDate',
             'Released Date',
             (item) => item.releaseDate,
         ),
+
         createElementColumn<PodcastEpisodeItem, string, { url: string }>(
             'videoUrl',
             'Video Url',
@@ -190,16 +186,23 @@ export function Component() {
             ),
             (_key, item) => ({ url: item.thumbnail?.url || '' }),
         ),
-        createElementColumn<PodcastEpisodeItem, string, { episode :PodcastEpisodeItem }>(
-            'actions',
-            'Actions',
-            PodcastEpisodeActions,
-            (_key, item) => ({
-                episode: item,
-            }),
-        ),
+        createElementColumn<PodcastEpisodeItem, string, {
+            podcastEpisode: PodcastEpisodeItem;
+            podcastEpisodeRefetch:(
+            ) => void;
+            onEdit: (episode: PodcastEpisodeItem) => void;
+                }>(
+                'actions',
+                'Actions',
+                PodcastEpisodeActions,
+                (_key, item) => ({
+                    podcastEpisode: item,
+                    podcastEpisodeRefetch,
+                    onEdit: setSelectedEpisode,
+                }),
+                ),
 
-    ]), []);
+    ]), [podcastEpisodeRefetch]);
 
     const data = podcastEpisodeResponse?.podcastEpisodes.results;
 
@@ -256,6 +259,7 @@ export function Component() {
                     onClose={setShowPodcastEpisodeModalFalse}
                     title={selectedEpisode ? 'Edit Podcast episode' : 'Add Podcast episode'}
                     initialValues={selectedEpisode || undefined}
+                    podcastEpisodeRefetch={podcastEpisodeRefetch}
                 />
             )}
         </Container>

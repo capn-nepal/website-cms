@@ -13,8 +13,8 @@ import {
     createNumberColumn,
     createStringColumn,
     Pager,
+    SelectInput,
     Table,
-    TextInput,
 } from '@togglecorp/toggle-ui';
 
 import Container from '#components/Container';
@@ -56,6 +56,18 @@ const PODCAST_SEASONS = gql`
 `;
 
 const PAGE_SIZE = 10;
+const statusOption = [
+    { isArchived: true, label: 'true' },
+    { isArchived: false, label: 'false' },
+];
+
+const statusKeySelector = (option: {
+    isArchived: boolean;
+    label: string,
+}) => String(option.isArchived);
+const statusLabelSelector = (option: {
+     isArchived: boolean;
+     label: string }) => String(option.label);
 
 const keySelector = (item: PodcastSeasonsItem) => item.id;
 
@@ -74,7 +86,7 @@ export function Component() {
         filter,
         setFilterField,
     } = useFilterState<{
-        title?: string;
+        isArchived?: boolean;
     }>({
         filter: {},
         pageSize: PAGE_SIZE,
@@ -84,12 +96,11 @@ export function Component() {
             limit: PAGE_SIZE,
             offset: (page - 1) * PAGE_SIZE,
         },
-        filters: {
-            title: filter.title ? { contains: filter.title } : undefined,
-        },
+        filters: filter.isArchived !== undefined ? { isArchived: filter.isArchived } : undefined,
     };
     const {
         data: podcastSeasonsResponse,
+        refetch: podcastSeasonRefetch,
     } = useQuery<PodcastSeasonsQuery, PodcastSeasonsQueryVariables>(
         PODCAST_SEASONS,
         { variables },
@@ -98,6 +109,22 @@ export function Component() {
         setSelectedSeason(null);
         setShowPodcastSeasonModalTrue();
     }, [setShowPodcastSeasonModalTrue]);
+
+    const onChange = useCallback(
+        (newValue: string | undefined) => {
+            let isArchived;
+            if (newValue === 'true') {
+                isArchived = true;
+            } else if (newValue === 'false') {
+                isArchived = false;
+            } else {
+                isArchived = undefined;
+            }
+
+            setFilterField(isArchived, 'isArchived');
+        },
+        [setFilterField],
+    );
 
     const columns = useMemo(() => ([
         createStringColumn<PodcastSeasonsItem, string | number>(
@@ -110,22 +137,30 @@ export function Component() {
             'Description',
             (item) => item.description,
         ),
-        createNumberColumn<PodcastSeasonsItem, number>(
+        createNumberColumn<PodcastSeasonsItem, string | number>(
             'seasonNumber',
-            'Season  number',
+            'Season number',
             (item) => item.seasonNumber,
         ),
         createElementColumn<PodcastSeasonsItem, string, {
             podcastSeason: PodcastSeasonsItem;
-        }>(
-            'actions',
-            'Actions',
-            PodcastSeasonsActions,
-            (_key, item) => ({
-                podcastSeason: item,
-            }),
-        ),
-    ]), []);
+            podcastSeasonRefetch:(
+            ) => void;
+            onEdit: (report:PodcastSeasonsItem) => void;
+                }>(
+                'actions',
+                'Actions',
+                PodcastSeasonsActions,
+                (_key, item) => ({
+                    podcastSeason: item,
+                    podcastSeasonRefetch,
+                    onEdit: (report: PodcastSeasonsItem) => {
+                        setSelectedSeason(report);
+                        setShowPodcastSeasonModalTrue();
+                    },
+                }),
+                ),
+    ]), [podcastSeasonRefetch, setShowPodcastSeasonModalTrue]);
 
     const data = podcastSeasonsResponse?.podcastSeasons.results;
     return (
@@ -134,14 +169,17 @@ export function Component() {
             childrenContainerClassName={styles.content}
             showHeader
             headingLevel={6}
-            heading="Podcast Table"
+            heading="Podcast season Table"
             headingDescription={(
                 <div className={styles.filterActions}>
-                    <TextInput
-                        placeholder="Title"
-                        name="title"
-                        value={filter.title}
-                        onChange={setFilterField}
+                    <SelectInput
+                        placeholder="Is Deleted"
+                        name="isDeleted"
+                        options={statusOption}
+                        keySelector={statusKeySelector}
+                        labelSelector={statusLabelSelector}
+                        value={filter.isArchived !== undefined ? String(filter.isArchived) : null}
+                        onChange={onChange}
                     />
                 </div>
             )}
@@ -178,6 +216,7 @@ export function Component() {
                     onClose={setShowPodcastSeasonModalFalse}
                     title={selectedSeason ? 'Edit Podcast season' : 'Add Podcast season'}
                     initialValues={selectedSeason || undefined}
+                    podcastSeasonRefetch={podcastSeasonRefetch}
                 />
             )}
         </Container>

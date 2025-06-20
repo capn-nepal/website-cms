@@ -49,9 +49,6 @@ const CREATE_PODCAST_EPISODE = gql`
                     episodeNumber
                     id
                     isArchived
-                    podcastSeason {
-                        pk
-                    }
                      releaseDate
                      thumbnail {
                          url
@@ -79,9 +76,6 @@ const UPDATE_PODCAST_EPISODE = gql`
                     episodeNumber
                     id
                     isArchived
-                    podcastSeason {
-                        pk
-                    }
                      releaseDate
                      thumbnail {
                         url
@@ -100,7 +94,7 @@ const UPDATE_PODCAST_EPISODE = gql`
     }
 `;
 const PODCAST_SEASON_QUERY = gql`
-    query PodcastSeasons ($pagination: OffsetPaginationInput) {
+    query PodcastSeason ($pagination: OffsetPaginationInput) {
         podcastSeasons(pagination: $pagination) {
             results {
                 id
@@ -114,6 +108,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdatePodcastEpisodeInput & { id: string }>;
+    podcastEpisodeRefetch:()=> void;
 }
 const seasonKeySelector = (option: { value: string; label: string }) => option.value;
 const seasonLabelSelector = (option: { value: string; label: string }) => option.label;
@@ -147,6 +142,7 @@ function PodcastEpisodeModal(props: Props) {
         onClose,
         title,
         initialValues,
+        podcastEpisodeRefetch,
     } = props;
 
     const alert = useAlert();
@@ -201,6 +197,7 @@ function PodcastEpisodeModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    podcastEpisodeRefetch();
                 }
             },
             onError: () => {
@@ -234,6 +231,7 @@ function PodcastEpisodeModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    podcastEpisodeRefetch();
                 }
             },
             onError: () => {

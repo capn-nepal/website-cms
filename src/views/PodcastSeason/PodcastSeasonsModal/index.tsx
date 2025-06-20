@@ -81,6 +81,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdatePodcastSeasonInput & { id: string }>;
+    podcastSeasonRefetch: ()=> void;
 }
 
 type PartialFormType = Partial<CreatePodcastSeasonInput>;
@@ -106,6 +107,7 @@ function PodcastSeasonModal(props: Props) {
         onClose,
         title,
         initialValues,
+        podcastSeasonRefetch,
     } = props;
     const alert = useAlert();
     const defaultFormValues: Partial<CreatePodcastSeasonInput> = {
@@ -145,6 +147,7 @@ function PodcastSeasonModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    podcastSeasonRefetch();
                 }
             },
             onError: () => {
@@ -178,6 +181,7 @@ function PodcastSeasonModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    podcastSeasonRefetch();
                 }
             },
             onError: () => {
