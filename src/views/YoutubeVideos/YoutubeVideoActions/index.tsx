@@ -12,6 +12,7 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     ArchiveYoutubeVideoMutation,
     ArchiveYoutubeVideoMutationVariables,
+    YoutubeVideosQuery,
     YouTubeVideoTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
@@ -21,17 +22,12 @@ import YoutubeVideosModal from '../YoutubeVideosModal';
 
 import styles from './styles.module.css';
 
+type YoutubeVideosItem = NonNullable<NonNullable<NonNullable<YoutubeVideosQuery>['youtubeVideos']>['results']>[number];
+
 interface Props {
-    youtubeVideo: {
-        id: string;
-        releaseDate: string;
-        title: string;
-        videoUrl: string;
-        thumbnail?:{
-            url?: string | null;
-        }
-    };
+    youtubeVideo: YoutubeVideosItem
     onEdit?: (event: Props['youtubeVideo']) => void;
+    youtubeVideoRefetch: () => void
 }
 
 const ARCHIVE_YOUTUBE_VIDEO = gql`
@@ -65,6 +61,7 @@ function YoutubeVideoActions(props: Props) {
     const {
         youtubeVideo,
         onEdit,
+        youtubeVideoRefetch,
     } = props;
     const alert = useAlert();
 
@@ -95,6 +92,7 @@ function YoutubeVideoActions(props: Props) {
                         { variant: 'success' },
                     );
                 }
+                youtubeVideoRefetch();
             },
             onError: () => {
                 alert.show(
@@ -149,6 +147,7 @@ function YoutubeVideoActions(props: Props) {
                     onClose={setShowEditYoutubeVideosModalFalse}
                     title="Edit Youtube Video"
                     initialValues={youtubeVideo}
+                    youtubeVideoRefetch={youtubeVideoRefetch}
                 />
             )}
         </div>

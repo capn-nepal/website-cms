@@ -103,6 +103,7 @@ export function Component() {
     };
     const {
         data: YoutubeVideosResponse,
+        refetch: youtubeVideosRefetch,
     } = useQuery<YoutubeVideosQuery, YoutubeVideosQueryVariables>(
         YOUTUBE_VIDEOS,
         { variables },
@@ -185,7 +186,7 @@ export function Component() {
             childrenContainerClassName={styles.content}
             showHeader
             headingLevel={6}
-            heading="Blogs Table"
+            heading="Youtube Videos Table"
             headingDescription={(
                 <div className={styles.filterActions}>
                     <TextInput
@@ -237,6 +238,7 @@ export function Component() {
                 <YoutubeVideosModal
                     onClose={setShowYoutubeVideoModalFalse}
                     title="Add Youtube Video"
+                    youtubeVideoRefetch={youtubeVideosRefetch}
                 />
             )}
 
