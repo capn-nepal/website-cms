@@ -34,7 +34,7 @@ type GalleryItem = NonNullable<GalleryItemsQuery['galleryItems']['results'][numb
 
 const PAGE_SIZE = 10;
 
-const statusOptions: {
+const imageTypeOptions: {
     label: string;
     status: ImageTypeEnum;
 }[] = [
@@ -100,6 +100,7 @@ export function Component() {
         },
     };
     const {
+        refetch: galleryItemRefetch,
         data: galleryItemsResponse,
     } = useQuery<GalleryItemsQuery, GalleryItemsQueryVariables>(
         GALLERY_ITEMS,
@@ -112,7 +113,7 @@ export function Component() {
         createStringColumn<GalleryItem, string | number>(
             'imageType',
             'Image Type',
-            (item) => String(item.imageType),
+            (item) => (item.imageType),
         ),
         createElementColumn<GalleryItem, string, { url: string }>(
             'image',
@@ -153,7 +154,7 @@ export function Component() {
                     <SelectInput
                         placeholder="Image type"
                         name="imageType"
-                        options={statusOptions}
+                        options={imageTypeOptions}
                         keySelector={statusKeySelector}
                         labelSelector={statusLabelSelector}
                         value={filter.imageType}
@@ -192,6 +193,7 @@ export function Component() {
             {showGalleryItemModal && (
                 <GalleryModal
                     onClose={setShowGalleryItemModalFalse}
+                    galleryItemRefetch={galleryItemRefetch}
                 />
             )}
         </Container>

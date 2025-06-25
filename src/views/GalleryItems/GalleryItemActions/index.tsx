@@ -9,6 +9,7 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     DeleteGalleryItemMutation,
     DeleteGalleryItemMutationVariables,
+    GalleryItemType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 
@@ -38,10 +39,14 @@ interface Props {
     galleryItem: {
         id: string;
     };
+    refetchGalleryItems:()=> void;
 }
 
 function GalleryItemActions(props: Props) {
-    const { galleryItem } = props;
+    const {
+        galleryItem,
+        refetchGalleryItems,
+    } = props;
     const alert = useAlert();
 
     const [
@@ -49,6 +54,21 @@ function GalleryItemActions(props: Props) {
         { loading: deleteLoading },
     ] = useMutation<DeleteGalleryItemMutation, DeleteGalleryItemMutationVariables>(
         DELETE_GALLERY_ITEM,
+        {
+            onCompleted: () => {
+                alert.show(
+                    'Gallery item deleted successfully',
+                    { variant: 'success' },
+                );
+                refetchGalleryItems();
+            },
+            onError: () => {
+                alert.show(
+                    'Failed to Delete an Gallery item',
+                    { variant: 'danger' },
+                );
+            },
+        },
 
     );
 

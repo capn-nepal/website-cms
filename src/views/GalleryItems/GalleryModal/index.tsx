@@ -56,6 +56,7 @@ const CREATE_GALLERY_ITEM = gql`
 
 interface Props {
     onClose: () => void;
+    galleryItemRefetch:()=> void;
 }
 
 const statusOptions: {
@@ -86,6 +87,7 @@ const formSchema: FormSchema = {
 function GalleryModal(props: Props) {
     const {
         onClose,
+        galleryItemRefetch,
     } = props;
     const alert = useAlert();
     const defaultFormValues: PartialFormType = {};
@@ -121,6 +123,7 @@ function GalleryModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    galleryItemRefetch();
                 }
             },
             onError: () => {
