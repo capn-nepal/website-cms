@@ -1,3 +1,19 @@
-.dashboard{
-    display:flex;
+.container {
+    padding: var(--cms-ui-spacing-xl);
+
+    .content {
+        .table {
+            background-color: var(--cms-ui-color-white-card);
+            width: 100%!important;
+        }
+    }
+}
+.actions{
+    text-decoration: none;
+    color: var(--cms-ui-primary-text-color);
+    &:hover {
+        background-color: var(--cms-ui-color-background);
+        text-decoration: underline;
+        color: var(--cms-ui-color-blue-500);
+    }
 }
