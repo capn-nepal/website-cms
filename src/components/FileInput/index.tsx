@@ -12,7 +12,7 @@ import {
     useButtonFeatures,
 } from '@togglecorp/toggle-ui';
 
-import RawFileInput, { RawFileInputProps } from '#components/RawFIleInput';
+import RawFileInput, { RawFileInputProps } from '#components/RawFileInput';
 import useDropHandler from '#hooks/useDropHandler';
 import isValidFile, { ErrorType } from '#utils/common';
 
@@ -22,9 +22,11 @@ type NameType = string | number | undefined;
 
 type InheritedProps<T extends NameType> = (
     Omit<InputContainerProps, 'input'> &
-    Omit<RawFileInputProps<T>, 'onChange' | 'value'>
+    Omit<RawFileInputProps<T>, 'onChange' | 'value' | 'id'>
 );
 
+/** @knipignore */
+// eslint-disable-next-line import/prefer-default-export
 export type Props<T extends NameType> = InheritedProps<T> & {
     inputElementRef?: React.RefObject<HTMLInputElement>;
     inputClassName?: string;
@@ -47,7 +49,6 @@ function FileInput<T extends NameType>(props: Props<T>) {
         inputContainerClassName,
         label,
         readOnly,
-        uiMode,
         inputElementRef,
         containerRef,
         inputSectionRef,
@@ -70,7 +71,9 @@ function FileInput<T extends NameType>(props: Props<T>) {
         setFileName(value?.name);
     }, [value]);
 
-    const handleFileChange = useCallback((file: File | null) => {
+    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0] ?? null;
+
         if (file) {
             const validity = isValidFile(file, maxFileSize, accept);
             if (!validity.isValid) {
@@ -90,10 +93,26 @@ function FileInput<T extends NameType>(props: Props<T>) {
 
     const handleDrop: React.DragEventHandler<HTMLDivElement> = useCallback((e) => {
         e.preventDefault();
-        const file = e.dataTransfer.files?.[0];
-        handleFileChange(file || null);
+        const file = e.dataTransfer.files?.[0] ?? null;
+
+        if (file) {
+            const validity = isValidFile(file, maxFileSize, accept);
+            if (!validity.isValid) {
+                if (validity.errorType === ErrorType.invalidFileType) {
+                    setInternalError('Invalid file type.');
+                } else {
+                    setInternalError(`File exceeds size limit of ${maxFileSize} MB.`);
+                }
+                onChange(null, nameFromProps);
+                return;
+            }
+        }
+
+        setInternalError(undefined);
+        setFileName(file?.name);
+        onChange(file, nameFromProps);
         e.dataTransfer.clearData();
-    }, [handleFileChange]);
+    }, [accept, maxFileSize, nameFromProps, onChange]);
 
     const {
         dropping,
@@ -102,6 +121,8 @@ function FileInput<T extends NameType>(props: Props<T>) {
         onDragLeave,
         onDrop,
     } = useDropHandler(handleDrop);
+
+    const inputId = `file-input-${String(nameFromProps)}`;
 
     const {
         className: buttonLabelClassName,
@@ -114,14 +135,13 @@ function FileInput<T extends NameType>(props: Props<T>) {
             <>
                 {children}
                 <RawFileInput
+                    id={inputId}
                     className={styles.input}
                     inputRef={inputElementRef}
                     readOnly={readOnly}
-                    uiMode={uiMode}
                     disabled={disabled}
                     name={nameFromProps}
                     accept={accept}
-                    value={undefined}
                     onChange={handleFileChange}
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...fileInputProps}
@@ -147,13 +167,16 @@ function FileInput<T extends NameType>(props: Props<T>) {
                     name="clear"
                     type="button"
                     className={styles.clearButton}
-                    onClick={() => handleFileChange(null)}
+                    onClick={() => {
+                        setInternalError(undefined);
+                        setFileName(undefined);
+                        onChange(null, nameFromProps);
+                    }}
                     disabled={disabled}
                     transparent
                 >
                     <IoTrash />
                 </Button>
-
             )}
             input={(
                 <div
@@ -168,7 +191,7 @@ function FileInput<T extends NameType>(props: Props<T>) {
                     onDragLeave={onDragLeave}
                 >
                     <div className={styles.browseButton}>
-                        <label className={buttonLabelClassName}>
+                        <label className={buttonLabelClassName} htmlFor={inputId}>
                             {buttonLabelChildren}
                         </label>
                     </div>

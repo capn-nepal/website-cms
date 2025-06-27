@@ -2,7 +2,7 @@ export enum ErrorType {
     maxFileSizeExceeded = 'MAX_FILE_SIZE_EXCEEDED',
     invalidFileType = 'INVALID_FILE_TYPE',
 }
-
+/** @knipignore */
 export type ValidityStatus = {
     isValid: true;
 } | {
