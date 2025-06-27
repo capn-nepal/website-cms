@@ -94,6 +94,20 @@ const gallery = customWrapRoute({
     },
 });
 
+const galleryItems = customWrapRoute({
+    parent: homeLayout,
+    path: 'galleryItems',
+    component: {
+        render: () => import('#views/GalleryItems'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Gallery-Items',
+        visibility: 'is-authenticated',
+    },
+});
+
 const reports = customWrapRoute({
     parent: homeLayout,
     path: 'reports',
@@ -298,6 +312,7 @@ const wrappedRoutes = {
     login,
     artWork,
     gallery,
+    galleryItems,
     reports,
     podcast,
     youtubeVideos,

@@ -19,5 +19,6 @@
         background-color: var(--cms-ui-color-background);
         text-decoration: underline;
         color: var(--cms-ui-color-blue-500);
+       
     }
 }
