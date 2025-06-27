@@ -18,6 +18,7 @@ import {
 
 import {
     CreateGalleryMutation,
+    CreateGalleryMutationVariables,
     GalleryInput,
     GalleryTypeMutationResponseType,
     GalleryUpdateInput,
@@ -105,7 +106,8 @@ function GalleryModal(props: Props) {
         initialValues,
     } = props;
     const alert = useAlert();
-    const defaultFormValues: Partial<GalleryInput> = {
+
+    const defaultFormValues: PartialFormType = {
         name: initialValues?.name || '',
         description: initialValues?.description,
     };
@@ -122,7 +124,7 @@ function GalleryModal(props: Props) {
     const [
         addGalleryTrigger,
         { loading: addGalleryLoading },
-    ] = useMutation<CreateGalleryMutation, CreateGalleryMutation>(
+    ] = useMutation<CreateGalleryMutation, CreateGalleryMutationVariables>(
         CREATE_GALLERY,
         {
             onCompleted: (response) => {
@@ -153,8 +155,8 @@ function GalleryModal(props: Props) {
     );
 
     const [
-        updateEventTrigger,
-        { loading: updateEventLoading },
+        updateGalleryTrigger,
+        { loading: updateGalleryLoading },
     ] = useMutation<UpdateGalleryMutation, UpdateGalleryMutationVariables>(
         UPDATE_GALLERY,
         {
@@ -169,7 +171,7 @@ function GalleryModal(props: Props) {
                     alert.show(errorMessages);
                 } else if (ok) {
                     alert.show(
-                        'Event successfully updated',
+                        'Gallery item successfully updated',
                         { variant: 'success' },
                     );
                     onClose();
@@ -177,7 +179,7 @@ function GalleryModal(props: Props) {
             },
             onError: () => {
                 alert.show(
-                    'Failed to update the event',
+                    'Failed to update the Gallery item',
                     { variant: 'danger' },
                 );
             },
@@ -186,7 +188,7 @@ function GalleryModal(props: Props) {
     const handleGallerySubmit = useCallback(
         (finalValue: PartialFormType) => {
             if (initialValues?.id) {
-                updateEventTrigger({
+                updateGalleryTrigger({
                     variables: {
                         pk: initialValues.id,
                         data: finalValue as GalleryUpdateInput,
@@ -201,7 +203,7 @@ function GalleryModal(props: Props) {
                 });
             }
         },
-        [addGalleryTrigger, initialValues, updateEventTrigger],
+        [addGalleryTrigger, initialValues, updateGalleryTrigger],
     );
 
     const handleSubmit = useCallback(() => {
@@ -222,7 +224,7 @@ function GalleryModal(props: Props) {
                         name="cancel"
                         variant="default"
                         onClick={onClose}
-                        disabled={addGalleryLoading || updateEventLoading || pristine}
+                        disabled={addGalleryLoading || updateGalleryLoading || pristine}
                     >
                         Cancel
                     </Button>
@@ -230,7 +232,7 @@ function GalleryModal(props: Props) {
                         name="save"
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={pristine || addGalleryLoading || updateEventLoading}
+                        disabled={pristine || addGalleryLoading || updateGalleryLoading}
                     >
                         Save
                     </Button>

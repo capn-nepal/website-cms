@@ -10,31 +10,37 @@ import {
 import { Button } from '@togglecorp/toggle-ui';
 
 import {
-    ArchiveGalleryMutation,
-    ArchiveGalleryMutationVariables,
-    GalleriesQuery,
-    GalleryTypeMutationResponseType,
+    ArchiveGalleryItemMutation,
+    ArchiveGalleryItemMutationVariables,
+    GalleryItemsQuery,
+    GalleryItemTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
 
-import GalleryModal from '../GalleryModal';
+import GalleryItemModal from '../GalleryItemModal';
 
 import styles from './styles.module.css';
 
-type GalleryItem = NonNullable<GalleriesQuery['galleries']['results'][number]>;
+type GalleryItem = NonNullable<GalleryItemsQuery['galleryItems']['results'][number]>;
 
 const DELETE_GALLERY = gql`
-    mutation ArchiveGallery($pk: ID!) {
-        archiveGallery(pk: $pk ) {
-            ... on GalleryTypeMutationResponseType {
+    mutation ArchiveGalleryItem($pk: ID!) {
+        archiveGalleryItem(pk: $pk ) {
+            ... on GalleryItemTypeMutationResponseType {
                 errors
                 ok
                 result {
-                    description
+                    caption
                     id
+                    gallery {
+                        name
+                        id
+                    }
+                    image {
+                        url
+                    }
                     isArchived
-                    name
                 }
             }
             ... on OperationInfo {
@@ -50,30 +56,31 @@ const DELETE_GALLERY = gql`
 interface Props {
     galleryItem: GalleryItem
     onEdit?: (event: Props['galleryItem']) => void;
-    refetchGallery:()=> void;
+    refetchGalleryItem: ()=> void;
 }
 
-function GalleryActions(props: Props) {
+function GalleryItemActions(props: Props) {
     const {
         galleryItem,
         onEdit,
-        refetchGallery,
+        refetchGalleryItem,
     } = props;
     const alert = useAlert();
     const [
-        showEditGalleryModal, {
-            setTrue: setShowEditGalleryModalTrue,
-            setFalse: setShowEditGalleryModalFalse,
+        showEditGalleryItemModal, {
+            setTrue: setShowEditGalleryItemModalTrue,
+            setFalse: setShowEditGalleryItemModalFalse,
         }] = useBooleanState(false);
 
     const [
         triggerArchiveGalleryItem,
         { loading: deleteLoading },
-    ] = useMutation<ArchiveGalleryMutation, ArchiveGalleryMutationVariables>(
+    ] = useMutation<ArchiveGalleryItemMutation, ArchiveGalleryItemMutationVariables >(
         DELETE_GALLERY,
         {
             onCompleted: (response) => {
-                const archiveGallery = response.archiveGallery as GalleryTypeMutationResponseType;
+                // eslint-disable-next-line max-len
+                const archiveGallery = response.archiveGalleryItem as GalleryItemTypeMutationResponseType;
                 const { ok, errors } = archiveGallery;
                 if (errors) {
                     const errorMessages = errors
@@ -86,6 +93,7 @@ function GalleryActions(props: Props) {
                         'Successfully archived the Gallery',
                         { variant: 'success' },
                     );
+                    refetchGalleryItem();
                 }
             },
             onError: () => {
@@ -119,11 +127,11 @@ function GalleryActions(props: Props) {
             alert.show('Invalid data');
             return;
         }
-        setShowEditGalleryModalTrue();
+        setShowEditGalleryItemModalTrue();
         if (onEdit) {
             onEdit(galleryItem);
         }
-    }, [galleryItem, setShowEditGalleryModalTrue, onEdit, alert]);
+    }, [galleryItem, setShowEditGalleryItemModalTrue, onEdit, alert]);
 
     return (
         <div className={styles.galleryActions}>
@@ -144,16 +152,19 @@ function GalleryActions(props: Props) {
             >
                 <IoTrash />
             </Button>
-            {showEditGalleryModal && (
-                <GalleryModal
-                    onClose={setShowEditGalleryModalFalse}
-                    title="Edit Gallery"
-                    initialValues={galleryItem}
-                    galleryRefetch={refetchGallery}
+            {showEditGalleryItemModal && (
+                <GalleryItemModal
+                    onClose={setShowEditGalleryItemModalFalse}
+                    title="Edit Gallery Item"
+                    initialValues={{
+                        ...galleryItem,
+                        gallery: galleryItem.gallery.id,
+                    }}
+                    galleryItemRefetch={refetchGalleryItem}
                 />
             )}
         </div>
     );
 }
 
-export default GalleryActions;
+export default GalleryItemActions;
