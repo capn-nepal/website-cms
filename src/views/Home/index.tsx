@@ -1,12 +1,12 @@
 import {
     IoGrid,
     IoImages,
+    IoLogoYoutube,
     IoPerson,
 } from 'react-icons/io5';
 import {
     MdDraw,
     MdOutlineOndemandVideo,
-    MdSmartDisplay,
 } from 'react-icons/md';
 import { TbReportSearch } from 'react-icons/tb';
 import { Outlet } from 'react-router-dom';
@@ -24,12 +24,12 @@ export function Component() {
             <Page
                 leftPaneContent={(
                     <>
-                        <NavigationTab
+                        {/* <NavigationTab
                             to="dashboard"
                             icon={<IoGrid />}
                         >
                             Dashboard
-                        </NavigationTab>
+                        </NavigationTab> */}
                         <NavigationTab
                             to="blogs"
                             icon={<IoPerson />}
@@ -68,7 +68,7 @@ export function Component() {
                         </NavigationTab>
                         <NavigationTab
                             to="youtubeVideos"
-                            icon={<MdSmartDisplay />}
+                            icon={<IoLogoYoutube />}
                         >
                             Youtube Videos
                         </NavigationTab>

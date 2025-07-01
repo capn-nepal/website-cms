@@ -40,19 +40,19 @@ const homeIndex = customWrapRoute({
     },
 });
 
-const dashboard = customWrapRoute({
-    parent: homeLayout,
-    path: 'dashboard',
-    component: {
-        render: () => import('#views/Dashboard'),
-        props: {},
-    },
-    wrapperComponent: Auth,
-    context: {
-        title: 'Dashboard',
-        visibility: 'anything',
-    },
-});
+// const dashboard = customWrapRoute({
+//     parent: homeLayout,
+//     path: 'dashboard',
+//     component: {
+//         render: () => import('#views/Dashboard'),
+//         props: {},
+//     },
+//     wrapperComponent: Auth,
+//     context: {
+//         title: 'Dashboard',
+//         visibility: 'anything',
+//     },
+// });
 
 const blogs = customWrapRoute({
     parent: homeLayout,
@@ -292,7 +292,7 @@ const wrappedRoutes = {
     rootLayout,
     homeLayout,
     homeIndex,
-    dashboard,
+    // dashboard,
     blogs,
     events,
     login,

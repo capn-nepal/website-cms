@@ -147,6 +147,11 @@ export function Component() {
             'Author',
             (item) => item.author?.name,
         ),
+        createStringColumn<BlogsItem, string | number>(
+            'status',
+            'Status',
+            (item) => item.status,
+        ),
 
         createDateColumn<BlogsItem, string | number>(
             'publishedDate',
