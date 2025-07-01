@@ -115,10 +115,6 @@ const statusOptions: {
     { status: 'PUBLISHED', label: 'Published' },
 ];
 
-const featureOption = [
-    { featured: true, label: 'Yes' },
-    { featured: false, label: 'No' },
-];
 
 type PartialFormType = Partial<UpdateBlogInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
@@ -155,9 +151,6 @@ const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
 const authorKeySelector = (option: { value: string; label: string }) => option.value;
 const authorLabelSelector = (option: { value: string; label: string }) => option.label;
-
-const featureKeySelector = (option: { label: string }) => String(option.label);
-const featureLabelSelector = (option: { label: string }) => String(option.label);
 
 /** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
@@ -345,16 +338,6 @@ export function Component() {
                     value={value.publishedDate}
                     error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
                     onChange={setFieldValue}
-                />
-                <SelectInput
-                    label="Featured"
-                    name="featured"
-                    options={featureOption}
-                    keySelector={featureKeySelector}
-                    labelSelector={featureLabelSelector}
-                    value={value.featured}
-                    onChange={setFieldValue}
-                    placeholder="Select Yes or No"
                 />
                 <SelectInput
                     label="Authors"
