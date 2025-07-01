@@ -112,6 +112,7 @@ const formSchema: FormSchema = {
             requiredValidation: requiredStringCondition,
         },
         coverImage: {},
+        featured: {},
     }),
 };
 

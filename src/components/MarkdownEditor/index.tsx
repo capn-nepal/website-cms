@@ -87,21 +87,6 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
                         ['table', 'link'],
                         ['code', 'codeblock'],
                     ]}
-                    hooks={{
-                        addImageBlobHook: async (blob: string | Blob, callback: (
-                                arg0: string, arg1: string) => void) => {
-                            const formData = new FormData();
-                            formData.append('file', blob);
-
-                            const response = await fetch('/upload-image', {
-                                method: 'POST',
-                                body: formData,
-                            });
-
-                            const result = await response.json();
-                            callback(result.imageUrl, 'image');
-                        },
-                    }}
 
                 />
             )}

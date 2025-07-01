@@ -103,19 +103,17 @@ export function Component() {
         pageSize: PAGE_SIZE,
     });
 
-    const filters = filter.status
-        ? {
-            title: filter.title ? { contains: filter.title } : undefined,
-            status: filter.status,
-        }
-        : undefined;
-
     const variables: BlogsQueryVariables = {
         pagination: {
             limit: PAGE_SIZE,
             offset: (page - 1) * PAGE_SIZE,
         },
-        filters,
+        filters: filter.status || filter.title
+            ? {
+                title: filter.title ? { contains: filter.title } : undefined,
+                status: filter.status,
+            }
+            : undefined,
     };
 
     const {

@@ -1,5 +1,6 @@
 import {
     useCallback,
+    useEffect,
     useState,
 } from 'react';
 import {
@@ -113,6 +114,7 @@ const statusOptions: {
     { status: 'DRAFT', label: 'Draft' },
     { status: 'PUBLISHED', label: 'Published' },
 ];
+
 const featureOption = [
     { featured: true, label: 'Yes' },
     { featured: false, label: 'No' },
@@ -193,6 +195,25 @@ export function Component() {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
+    useEffect(() => {
+        if (blogValues) {
+            const newValues: PartialFormType = {
+                title: blogValues.title,
+                description: blogValues.description,
+                publishedDate: blogValues.publishedDate,
+                content: blogValues.content,
+                coverImage: blogValues.coverImage?.url,
+                featured: blogValues.featured,
+                author: blogValues.author.id,
+                status: blogValues.status,
+            };
+
+            Object.entries(newValues).forEach(([key, val]) => {
+                setFieldValue(val, key as keyof PartialFormType);
+            });
+        }
+    }, [blogValues, setFieldValue]);
+
     const { data: authorsResponse } = useQuery<AuthorsQuery, AuthorsQueryVariables>(
         AUTHORS_QUERY,
     );
@@ -235,6 +256,7 @@ export function Component() {
             },
         },
     );
+
     const handleEditBlogSubmit = useCallback(
         (finalValue: PartialFormType) => {
             const formattedValue = {
@@ -255,6 +277,7 @@ export function Component() {
         },
         [updateBlogResponse, id],
     );
+
     const handleSubmit = useCallback(() => {
         createSubmitHandler(validate, setError, handleEditBlogSubmit)();
     }, [validate, setError, handleEditBlogSubmit]);
