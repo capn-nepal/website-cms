@@ -169,7 +169,7 @@ export function Component() {
                     EventActions,
                     (_key, item) => ({
                         event: item,
-                        eventRefetch,
+                        refetchEvent: eventRefetch,
                     }),
                     ),
     ], [eventRefetch]);
