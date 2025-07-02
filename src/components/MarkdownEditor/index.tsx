@@ -1,9 +1,13 @@
 import '@toast-ui/editor/dist/toastui-editor.css';
+import 'prismjs/themes/prism.css';
 
 import {
     useCallback,
     useRef,
 } from 'react';
+import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
+import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
+import tableMergedCell from '@toast-ui/editor-plugin-table-merged-cell';
 import { Editor } from '@toast-ui/react-editor';
 import { _cs } from '@togglecorp/fujs';
 import {
@@ -86,8 +90,13 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
                         ['ul', 'ol', 'task'],
                         ['table', 'link'],
                         ['code', 'codeblock'],
+                        ['image'],
                     ]}
-
+                    plugins={[
+                        codeSyntaxHighlight,
+                        colorSyntax,
+                        tableMergedCell,
+                    ]}
                 />
             )}
         />
