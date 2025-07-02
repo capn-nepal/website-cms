@@ -13,6 +13,7 @@ import { AlertType } from '#contexts/alert';
 
 import styles from './styles.module.css';
 
+/** @knipignore */
 export interface Props<N> {
     name: N;
     className?: string;

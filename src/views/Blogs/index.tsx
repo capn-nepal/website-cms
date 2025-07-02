@@ -18,6 +18,7 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import Chip, { ChipVariant } from '#components/Chip';
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
 import {
@@ -79,6 +80,11 @@ const statusOptions: {
     { status: 'DRAFT', label: 'Draft' },
     { status: 'PUBLISHED', label: 'Published' },
 ];
+const statusVariant: Record<string, string> = {
+    Draft: 'warning',
+    Published: 'success',
+    Archived: 'danger',
+};
 
 const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
@@ -139,17 +145,12 @@ export function Component() {
             'Description',
             (item) => item.description,
         ),
-
         createStringColumn<BlogsItem, string | number>(
             'author',
             'Author',
             (item) => item.author?.name,
         ),
-        createStringColumn<BlogsItem, string | number>(
-            'status',
-            'Status',
-            (item) => item.status,
-        ),
+
         createDateColumn<BlogsItem, string | number>(
             'publishedDate',
             'Published Date',
@@ -174,6 +175,28 @@ export function Component() {
                 </a>
             ),
             (_, item) => ({ url: item.coverImage?.url ?? '' }),
+        ),
+        createElementColumn<BlogsItem, string,
+        { status: string | undefined; variant: string }>(
+            'status',
+            'Status',
+            ({ status, variant }) => (
+                <Chip
+                    label={status}
+                    variant={variant as ChipVariant}
+                />
+            ),
+            (_key, item) => {
+                const statusLabel = statusOptions.find(
+                    (statusOption) => statusOption.status === item.status,
+                )?.label;
+                const variant = statusLabel ? statusVariant[statusLabel] : 'default';
+                return {
+                    status: statusLabel,
+                    variant,
+                };
+            },
+            { columnClassName: styles.actions },
         ),
         createElementColumn<BlogsItem, string, { id: string }>(
             'actions',

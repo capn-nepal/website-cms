@@ -1,0 +1,15 @@
+.input-container {
+    .input-section {
+        background-color: var( --cms-color-background-input-section-light);
+
+        .input-children {
+            display: flex;
+            align-items: start;
+            gap: var(--cms-ui-spacing-lg);
+        }
+
+        .input {
+            visibility: hidden;
+        }
+    }
+}

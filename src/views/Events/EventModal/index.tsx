@@ -85,6 +85,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdateEventInput & { id: string }>;
+    eventRefetch: ()=> void;
 }
 
 type PartialFormType = Partial<CreateEventInput>;
@@ -118,6 +119,7 @@ function EventModal(props: Props) {
         title,
         onClose,
         initialValues,
+        eventRefetch,
     } = props;
     const alert = useAlert();
 
@@ -159,6 +161,7 @@ function EventModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    eventRefetch();
                 }
             },
             onError: () => {
@@ -189,6 +192,7 @@ function EventModal(props: Props) {
                     { variant: 'success' },
                 );
                 onClose();
+                eventRefetch();
             }
         },
         onError: () => {

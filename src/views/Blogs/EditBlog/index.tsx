@@ -1,7 +1,6 @@
 import {
     useCallback,
     useEffect,
-    useState,
 } from 'react';
 import {
     useNavigate,
@@ -28,6 +27,7 @@ import {
 } from '@togglecorp/toggle-ui';
 
 import Container from '#components/Container';
+import FileInput from '#components/FileInput';
 import MarkdownEditor from '#components/MarkdownEditor';
 import {
     AuthorsQuery,
@@ -119,6 +119,7 @@ const featureOption = [
     { value: true, label: 'Yes' },
     { value: false, label: 'No' },
 ];
+
 type PartialFormType = Partial<UpdateBlogInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
@@ -162,8 +163,6 @@ export function Component() {
     const alert = useAlert();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
-
     const {
         data: blogData,
     } = useQuery<BlogQuery>(
@@ -279,20 +278,6 @@ export function Component() {
         createSubmitHandler(validate, setError, handleEditBlogSubmit)();
     }, [validate, setError, handleEditBlogSubmit]);
 
-    const handleFileChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const uploadedFile = e.target.files?.[0] ?? null;
-            if (uploadedFile) {
-                setFieldValue(uploadedFile, 'coverImage');
-                setFilePreview(URL.createObjectURL(uploadedFile));
-            } else {
-                setFieldValue(undefined, 'coverImage');
-                setFilePreview(undefined);
-            }
-        },
-        [setFieldValue],
-    );
-
     const error = getErrorObject(formError);
 
     return (
@@ -372,28 +357,19 @@ export function Component() {
                     value={value.status}
                     onChange={setFieldValue}
                 />
-                <div>
-                    <div>Cover Image</div>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        id="image"
-                        name="image"
-                        onChange={handleFileChange}
-                    />
-                    {filePreview && (
-                        <div>
-                            <img
-                                src={filePreview}
-                                alt=""
-                                style={{ maxWidth: '100%', maxHeight: '200px' }}
-                            />
-                        </div>
-                    )}
-                    {error?.coverImage && typeof error.coverImage === 'string' && (
-                        <div>{error.coverImage}</div>
-                    )}
-                </div>
+                <FileInput
+                    label="Cover Image"
+                    name="coverImage"
+                    accept="image/*"
+                    value={value.coverImage as File | undefined | null}
+                    onChange={(file, name) => {
+                        setFieldValue(file, name);
+                    }}
+                    error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
+                    showFileName
+                >
+                    Choose Image
+                </FileInput>
                 <MarkdownEditor
                     label="Blog Content"
                     name="content"

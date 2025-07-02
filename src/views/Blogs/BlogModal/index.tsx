@@ -1,7 +1,4 @@
-import {
-    useCallback,
-    useState,
-} from 'react';
+import { useCallback } from 'react';
 import {
     gql,
     useMutation,
@@ -23,6 +20,7 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import FileInput from '#components/FileInput';
 import MarkdownEditor from '#components/MarkdownEditor';
 import {
     AuthorsQuery,
@@ -139,7 +137,6 @@ function BlogModal(props: Props) {
         setError,
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
-    const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
 
     const {
         data: authorsResponse,
@@ -197,20 +194,6 @@ function BlogModal(props: Props) {
     const handleSubmit = useCallback(() => {
         createSubmitHandler(validate, setError, handleAddBlogSubmit)();
     }, [validate, setError, handleAddBlogSubmit]);
-
-    const handleFileChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const uploadedFile = e.target.files?.[0] ?? null;
-            if (uploadedFile) {
-                setFieldValue(uploadedFile, 'coverImage');
-                setFilePreview(URL.createObjectURL(uploadedFile));
-            } else {
-                setFieldValue(undefined, 'coverImage');
-                setFilePreview(undefined);
-            }
-        },
-        [setFieldValue],
-    );
 
     const error = getErrorObject(formError);
 
@@ -282,34 +265,25 @@ function BlogModal(props: Props) {
                 labelSelector={authorLabelSelector}
                 onChange={setFieldValue}
             />
-            <div>
-                <div>Cover Image</div>
-                <input
-                    type="file"
-                    accept="image/*"
-                    id="image"
-                    name="image"
-                    onChange={handleFileChange}
-                />
-                {filePreview && (
-                    <div>
-                        <img
-                            src={filePreview}
-                            alt=""
-                            style={{ maxWidth: '100%', maxHeight: '200px' }}
-                        />
-                    </div>
-                )}
-                {error?.coverImage && typeof error.coverImage === 'string' && (
-                    <div>{error.coverImage}</div>
-                )}
-            </div>
+            <FileInput
+                label="Cover Image"
+                name="coverImage"
+                accept="image/*"
+                value={value.coverImage as File | undefined | null}
+                onChange={(file, name) => {
+                    setFieldValue(file, name);
+                }}
+                error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
+                showFileName
+            >
+                Choose Image
+            </FileInput>
             <MarkdownEditor
                 label="Blog Content"
                 name="content"
                 value={value.content}
                 onChange={setFieldValue}
-                height="300px"
+                height="200px"
             />
         </Modal>
     );

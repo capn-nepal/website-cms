@@ -31,6 +31,7 @@ interface Props {
         endDate: string;
     };
     onEdit?: (event: Props['event']) => void;
+    eventRefetch:() => void;
 }
 
 const ARCHIVE_EVENT = gql`
@@ -58,7 +59,11 @@ const ARCHIVE_EVENT = gql`
     }
 `;
 function EventActions(props: Props) {
-    const { event, onEdit } = props;
+    const {
+        event,
+        onEdit,
+        eventRefetch,
+    } = props;
     const alert = useAlert();
 
     const [
@@ -87,6 +92,7 @@ function EventActions(props: Props) {
                         'Successfully archived the event',
                         { variant: 'success' },
                     );
+                    eventRefetch();
                 }
             },
             onError: () => {
@@ -137,6 +143,7 @@ function EventActions(props: Props) {
                     onClose={setShowEditEventModalFalse}
                     title="Edit Event"
                     initialValues={event}
+                    eventRefetch={eventRefetch}
                 />
             )}
         </div>

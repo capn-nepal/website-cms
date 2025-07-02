@@ -100,6 +100,7 @@ export function Component() {
         },
     };
     const {
+        refetch: eventRefetch,
         data: eventsResponse,
     } = useQuery<EventsQuery, EventsQueryVariables>(
         EVENTS,
@@ -158,14 +159,20 @@ export function Component() {
         createElementColumn<
             EventItem,
             string,
-            { event: EventItem; }
-        >(
-            'actions',
-            'Actions',
-            EventActions,
-            (_key, item) => ({ event: item }),
-        ),
-    ], []);
+            { event: EventItem;
+                refetchEvent:(
+                ) =>void
+                    }
+                    >(
+                    'actions',
+                    'Actions',
+                    EventActions,
+                    (_key, item) => ({
+                        event: item,
+                        eventRefetch,
+                    }),
+                    ),
+    ], [eventRefetch]);
 
     return (
         <Container
@@ -212,6 +219,7 @@ export function Component() {
                     onClose={setShowEventModalFalse}
                     title={selectedEvent ? 'Edit Event' : 'Add Event'}
                     initialValues={selectedEvent || undefined}
+                    eventRefetch={eventRefetch}
                 />
             )}
             <Table
