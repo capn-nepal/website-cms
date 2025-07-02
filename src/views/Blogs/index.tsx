@@ -150,7 +150,6 @@ export function Component() {
             'Status',
             (item) => item.status,
         ),
-
         createDateColumn<BlogsItem, string | number>(
             'publishedDate',
             'Published Date',

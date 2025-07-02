@@ -82,8 +82,14 @@ interface Props {
     onClose: () => void;
     addBlogsRefetch:()=> void;
 }
+const featureOption = [
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' },
+];
 const authorKeySelector = (option: { value: string; label: string }) => option.value;
 const authorLabelSelector = (option: { value: string; label: string }) => option.label;
+const featureKeySelector = (option: { value: boolean }) => option.value;
+const featureLabelSelector = (option: { label: string }) => option.label;
 
 type PartialFormType = Partial<CreateBlogInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
@@ -254,6 +260,16 @@ function BlogModal(props: Props) {
                 name="publishedDate"
                 value={value.publishedDate}
                 error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
+                onChange={setFieldValue}
+            />
+            <SelectInput
+                label="Featured"
+                name="featured"
+                options={featureOption}
+                value={value.featured}
+                error={error?.featured}
+                keySelector={featureKeySelector}
+                labelSelector={featureLabelSelector}
                 onChange={setFieldValue}
             />
             <SelectInput
