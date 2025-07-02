@@ -17,6 +17,7 @@ import {
     Button,
     DateInput,
     Modal,
+    SelectInput,
     TextArea,
     TextInput,
 } from '@togglecorp/toggle-ui';
@@ -27,6 +28,7 @@ import {
     CreateReportMutation,
     CreateReportMutationVariables,
     ReportTypeMutationResponseType,
+    StatusEnum,
     UpdateReportInput,
     UpdateReportMutation,
     UpdateReportMutationVariables,
@@ -93,10 +95,19 @@ interface Props {
     onClose: () => void;
     title: string;
     initialValues?: Partial<UpdateReportInput & { id: string }>;
-    reportsRefetch:()=> void;
+    reportsRefetch: () => void;
 }
+const statusOptions: {
+    label: string;
+    status: StatusEnum;
+}[] = [
+    { status: 'DRAFT', label: 'Draft' },
+    { status: 'PUBLISHED', label: 'Published' },
+];
+const statusKeySelector = (option: { status: StatusEnum }) => option.status;
+const statusLabelSelector = (option: { label: string }) => option.label;
 
-type PartialFormType = Partial<CreateReportInput>;
+type PartialFormType = Partial<CreateReportInput & UpdateReportInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
@@ -115,6 +126,7 @@ const formSchema: FormSchema = {
             requiredValidation: requiredStringCondition,
         },
         reportFile: {},
+        status: {},
     }),
 };
 
@@ -127,11 +139,12 @@ function ReportModal(props: Props) {
     } = props;
     const alert = useAlert();
 
-    const defaultFormValues: Partial<CreateReportInput> = {
+    const defaultFormValues: Partial<CreateReportInput & UpdateReportInput> = {
         title: initialValues?.title || '',
         description: initialValues?.description || '',
         publishedDate: initialValues?.publishedDate || undefined,
         reportFile: initialValues?.reportFile,
+        status: initialValues?.status || undefined, // Default status for editing
     };
 
     const [filePreview, setFilePreview] = useState<File | null>(null);
@@ -223,9 +236,11 @@ function ReportModal(props: Props) {
                     },
                 });
             } else {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { status, ...createData } = finalValue;
                 createReportTrigger({
                     variables: {
-                        data: finalValue as CreateReportInput,
+                        data: createData as CreateReportInput,
                     },
                     context: {
                         hasUpload: true,
@@ -234,7 +249,6 @@ function ReportModal(props: Props) {
             }
         })();
     }, [validate, setError, createReportTrigger, updateReportTrigger, initialValues]);
-
     const error = getErrorObject(formError);
 
     return (
@@ -279,6 +293,18 @@ function ReportModal(props: Props) {
                 error={error?.description}
                 onChange={setFieldValue}
             />
+            {initialValues?.id && (
+                <SelectInput
+                    label="Status"
+                    name="status"
+                    options={statusOptions}
+                    keySelector={statusKeySelector}
+                    labelSelector={statusLabelSelector}
+                    value={value.status}
+                    error={error?.status}
+                    onChange={setFieldValue}
+                />
+            )}
             <DateInput
                 label="Published Date"
                 name="publishedDate"
@@ -297,6 +323,7 @@ function ReportModal(props: Props) {
             >
                 Choose a File
             </FileInput>
+
         </Modal>
     );
 }
