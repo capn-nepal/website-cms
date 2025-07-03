@@ -222,7 +222,6 @@ function BlogModal(props: Props) {
                     </Button>
                 </div>
             )}
-            freeHeight
         >
             <TextInput
                 label="Title"
@@ -238,11 +237,13 @@ function BlogModal(props: Props) {
                 error={error?.description}
                 onChange={setFieldValue}
             />
-            <DateInput
-                label="Published date"
-                name="publishedDate"
-                value={value.publishedDate}
-                error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
+            <SelectInput
+                label="Authors"
+                name="author"
+                options={authorOptions}
+                value={value.author}
+                keySelector={authorKeySelector}
+                labelSelector={authorLabelSelector}
                 onChange={setFieldValue}
             />
             <SelectInput
@@ -255,14 +256,11 @@ function BlogModal(props: Props) {
                 labelSelector={featureLabelSelector}
                 onChange={setFieldValue}
             />
-            <SelectInput
-                label="Authors"
-                name="author"
-                options={authorOptions}
-                value={value.author}
-                error={error?.author}
-                keySelector={authorKeySelector}
-                labelSelector={authorLabelSelector}
+            <DateInput
+                label="Published date"
+                name="publishedDate"
+                value={value.publishedDate}
+                error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
                 onChange={setFieldValue}
             />
             <FileInput
@@ -281,9 +279,10 @@ function BlogModal(props: Props) {
             <MarkdownEditor
                 label="Blog Content"
                 name="content"
-                value={value.content}
+                value={value.content ?? undefined}
                 onChange={setFieldValue}
-                height="200px"
+                previewStyle="vertical"
+                height="400px"
             />
         </Modal>
     );

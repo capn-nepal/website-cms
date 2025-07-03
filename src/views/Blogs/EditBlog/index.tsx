@@ -307,6 +307,7 @@ export function Component() {
         >
             <form className={styles.form} onSubmit={handleSubmit}>
                 <TextInput
+                    className={styles.fullSizeInput}
                     label="Title"
                     name="title"
                     value={value.title}
@@ -319,13 +320,6 @@ export function Component() {
                     name="description"
                     value={value.description}
                     error={error?.description}
-                    onChange={setFieldValue}
-                />
-                <DateInput
-                    label="Published date"
-                    name="publishedDate"
-                    value={value.publishedDate}
-                    error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
                     onChange={setFieldValue}
                 />
                 <SelectInput
@@ -357,7 +351,15 @@ export function Component() {
                     value={value.status}
                     onChange={setFieldValue}
                 />
+                <DateInput
+                    label="Published date"
+                    name="publishedDate"
+                    value={value.publishedDate}
+                    error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
+                    onChange={setFieldValue}
+                />
                 <FileInput
+                    className={styles.fullSizeInput}
                     label="Cover Image"
                     name="coverImage"
                     accept="image/*"
@@ -371,11 +373,13 @@ export function Component() {
                     Choose Image
                 </FileInput>
                 <MarkdownEditor
+                    className={styles.fullSizeInput}
                     label="Blog Content"
                     name="content"
                     value={value.content ?? undefined}
                     onChange={setFieldValue}
                     height="400px"
+                    previewStyle="vertical"
                 />
             </form>
         </Container>

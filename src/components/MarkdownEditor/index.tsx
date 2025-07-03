@@ -7,7 +7,6 @@ import {
 } from 'react';
 import codeSyntaxHighlight from '@toast-ui/editor-plugin-code-syntax-highlight';
 import colorSyntax from '@toast-ui/editor-plugin-color-syntax';
-import tableMergedCell from '@toast-ui/editor-plugin-table-merged-cell';
 import { Editor } from '@toast-ui/react-editor';
 import { _cs } from '@togglecorp/fujs';
 import {
@@ -25,6 +24,7 @@ export type MarkdownEditorProps<T> = Omit<InputContainerProps, 'input' | 'onChan
     value?: string;
     disabled?: boolean;
     height?: string;
+    previewStyle?: string;
 };
 
 function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
@@ -46,6 +46,7 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
         label,
         labelContainerClassName,
         readOnly,
+        previewStyle,
         uiMode,
         height,
     } = props;
@@ -77,7 +78,7 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
                 <Editor
                     ref={editorRef}
                     initialValue={value}
-                    previewStyle="vertical"
+                    previewStyle={previewStyle}
                     height={height}
                     initialEditType="markdown"
                     useCommandShortcut
@@ -88,14 +89,13 @@ function MarkdownEditor<T extends string>(props: MarkdownEditorProps<T>) {
                         ['heading', 'bold', 'italic', 'strike'],
                         ['hr', 'quote'],
                         ['ul', 'ol', 'task'],
-                        ['table', 'link'],
-                        ['code', 'codeblock'],
                         ['image'],
+                        ['link'],
+                        ['code', 'codeblock'],
                     ]}
                     plugins={[
                         codeSyntaxHighlight,
                         colorSyntax,
-                        tableMergedCell,
                     ]}
                 />
             )}

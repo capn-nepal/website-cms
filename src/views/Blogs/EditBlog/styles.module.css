@@ -1,10 +1,21 @@
 .container {
     padding: var(--cms-ui-spacing-lg) var(--cms-ui-spacing-2xl);
 
+    .form{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--cms-ui-spacing-lg);
+        
+        .full-size-input {
+            grid-column: 1 / -1; 
+        }
+    }
+
     .action-content{
         display: flex;
         justify-content: flex-end;
         gap: var(--cms-ui-spacing-md);
     }
+ 
 }
 
