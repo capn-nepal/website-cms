@@ -24,6 +24,7 @@ import {
     AddTeamMemberMutation,
     AddTeamMemberMutationVariables,
     CreateTeamMemberInput,
+    TeamMemberTypeEnum,
     TeamMemberTypeMutationResponseType,
     UpdateTeamMemberInput,
     UpdateTeamMemberMutation,
@@ -93,18 +94,22 @@ interface Props {
     onClose: () => void;
     title: string;
     initialValues?: Partial<UpdateTeamMemberInput & { id: string }>;
+    teamRefetch:()=> void;
 }
 
-const statusOptions = [
-    { key: 'BOARD_MEMBER', label: 'Board Member' },
-    { key: 'TEAM_MEMBER', label: 'Team Member' },
+const statusOptions: {
+    label: string;
+    status:TeamMemberTypeEnum;
+}[] = [
+    { status: 'BOARD_MEMBER', label: 'Board Member' },
+    { status: 'TEAM_MEMBER', label: 'Team Member' },
 ];
 
 type PartialFormType = Partial<CreateTeamMemberInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
-const keySelector = (option: { key: string }) => option.key;
+const keySelector = (option: { status: TeamMemberTypeEnum }) => option.status;
 const labelSelector = (option: { label: string }) => option.label;
 
 const formSchema: FormSchema = {
@@ -135,15 +140,16 @@ function TeamModal(props: Props) {
         onClose,
         title,
         initialValues,
+        teamRefetch,
     } = props;
     const alert = useAlert();
 
-    const defaultFormValues: Partial<CreateTeamMemberInput> = {
+    const defaultFormValues: Partial<CreateTeamMemberInput & UpdateTeamMemberInput> = {
         firstName: initialValues?.firstName || '',
         middleName: initialValues?.middleName || '',
         lastName: initialValues?.lastName || '',
         designation: initialValues?.designation || '',
-        memberType: initialValues?.memberType,
+        memberType: initialValues?.memberType ?? undefined,
         memberPhoto: initialValues?.memberPhoto,
     };
 
@@ -178,6 +184,7 @@ function TeamModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    teamRefetch();
                 }
             },
             onError: () => {
@@ -211,6 +218,7 @@ function TeamModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    teamRefetch();
                 }
             },
             onError: () => {
@@ -317,6 +325,7 @@ function TeamModal(props: Props) {
             <SelectInput
                 label="Member Type"
                 name="memberType"
+                placeholder="Member type"
                 value={value.memberType}
                 error={error?.memberType}
                 onChange={setFieldValue}

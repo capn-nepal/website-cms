@@ -12,25 +12,22 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     DeleteTeamMemberMutation,
     DeleteTeamMemberMutationVariables,
+    TeamMembersQuery,
     TeamMemberTypeEnum,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import useBooleanState from '#hooks/useBooleanState';
+
+import TeamModal from '../TeamModal';
 
 import styles from './styles.module.css';
 
+type TeamsItem = NonNullable<TeamMembersQuery['teamMembers']['results'][number]>;
+
 interface Props {
-    teamMember: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        middleName?: string;
-        designation: string;
-        memberType: TeamMemberTypeEnum;
-        memberPhoto: {
-            url: string | null;
-        };
-    };
+    teamMember: TeamsItem;
     onEdit: (teamMember: Props['teamMember']) => void;
+    teamRefetch: () => void;
 }
 
 const DELETE_TEAM_MEMBER = gql`
@@ -61,21 +58,53 @@ function TeamActions(props: Props) {
     const {
         teamMember,
         onEdit,
+        teamRefetch,
     } = props;
 
     const alert = useAlert();
     const [
+        showEditTeamMemberModal, {
+            setTrue: setShowEditTeamMemberModalTrue,
+            setFalse: setShowEditTeamMemberModalFalse,
+        },
+    ] = useBooleanState(false);
+    const [
         triggerDeleteTeamMember,
     ] = useMutation<DeleteTeamMemberMutation, DeleteTeamMemberMutationVariables>(
         DELETE_TEAM_MEMBER,
+        {
+            onCompleted: (response) => {
+                if ('messages' in response.deleteTeamMember) {
+                    const message = response.deleteTeamMember.messages?.[0]?.message;
+                    alert.show(
+                        message,
+                    );
+                } else {
+                    alert.show(
+                        'Team member deleted successfully',
+                        { variant: 'success' },
+                    );
+                    teamRefetch();
+                }
+            },
+            onError: () => {
+                alert.show(
+                    'Failed to delete team member',
+                    { variant: 'danger' },
+                );
+            },
+
+        },
     );
     const handleEdit = useCallback(() => {
         if (!teamMember?.id) {
-            alert.show('Invalid team member data');
+            alert.show('Invalid report data');
             return;
         }
+
+        setShowEditTeamMemberModalTrue();
         onEdit(teamMember);
-    }, [teamMember, onEdit, alert]);
+    }, [teamMember, setShowEditTeamMemberModalTrue, onEdit, alert]);
 
     const handleDelete = useCallback(() => {
         triggerDeleteTeamMember({
@@ -86,7 +115,7 @@ function TeamActions(props: Props) {
                 hasUpload: true,
             },
         });
-    }, [triggerDeleteTeamMember, teamMember.id]);
+    }, [triggerDeleteTeamMember, teamMember]);
 
     return (
         <div className={styles.reportActions}>
@@ -106,6 +135,17 @@ function TeamActions(props: Props) {
             >
                 <IoTrash />
             </Button>
+            {showEditTeamMemberModal && (
+                <TeamModal
+                    onClose={setShowEditTeamMemberModalFalse}
+                    title="Edit Team member"
+                    initialValues={{
+                        ...teamMember,
+                        memberType: teamMember.memberType as TeamMemberTypeEnum,
+                    }}
+                    teamRefetch={teamRefetch}
+                />
+            )}
         </div>
     );
 }

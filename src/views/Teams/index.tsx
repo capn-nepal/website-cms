@@ -85,7 +85,10 @@ export function Component() {
             setFalse: setShowAddTeamMemberModalFalse,
         }] = useBooleanState(false);
 
-    const [selectedTeamMember, setSelectedTeamMember] = useState<Partial<TeamsItem> | null>(null);
+    const [
+        selectedTeamMember,
+        setSelectedTeamMember,
+    ] = useState<Partial<TeamsItem> | undefined>(undefined);
     const {
         filter,
         setFilterField,
@@ -106,6 +109,7 @@ export function Component() {
         },
     };
     const {
+        refetch: teamRefetch,
         data: teamMemberResponse,
     } = useQuery<TeamMembersQuery, TeamMembersQueryVariables>(
         TEAMS,
@@ -114,7 +118,7 @@ export function Component() {
 
     const data = teamMemberResponse?.teamMembers.results;
     const handleTeamMember = useCallback(() => {
-        setSelectedTeamMember(null);
+        setSelectedTeamMember(undefined);
         setShowAddTeamMemberModalTrue();
     }, [setShowAddTeamMemberModalTrue]);
 
@@ -172,13 +176,12 @@ export function Component() {
                 }>,
                 (_key, item) => ({
                     teamMember: item,
-                    onEdit: (selectedItem) => {
-                        setSelectedTeamMember(selectedItem);
-                        setShowAddTeamMemberModalTrue();
-                    },
+                    teamRefetch,
+                    onEdit: setSelectedTeamMember,
+
                 }),
                 ),
-    ]), [setShowAddTeamMemberModalTrue]);
+    ]), [teamRefetch]);
 
     return (
         <Container
@@ -186,7 +189,7 @@ export function Component() {
             childrenContainerClassName={styles.content}
             showHeader
             headingLevel={6}
-            heading="Event Table"
+            heading="Team Table"
             headingDescription={(
                 <div className={styles.filterActions}>
                     <SelectInput
@@ -202,7 +205,7 @@ export function Component() {
             )}
             actions={(
                 <Button
-                    name="Add Event"
+                    name="Add Team"
                     variant="primary"
                     onClick={handleTeamMember}
                     icons={<IoAdd />}
@@ -232,7 +235,7 @@ export function Component() {
                 <TeamModal
                     onClose={setShowAddTeamMemberModalFalse}
                     title={selectedTeamMember ? 'Edit Team Member' : 'Add Team Member'}
-                    initialValues={selectedTeamMember || undefined}
+                    teamRefetch={teamRefetch}
                 />
             )}
         </Container>
