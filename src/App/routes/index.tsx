@@ -162,6 +162,19 @@ const events = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
+const teams = customWrapRoute({
+    parent: homeLayout,
+    path: 'teams',
+    component: {
+        render: () => import('#views/Teams'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'teams',
+        visibility: 'is-authenticated',
+    },
+});
 
 /*
 const userManagement = customWrapRoute({
@@ -301,6 +314,7 @@ const wrappedRoutes = {
     reports,
     podcast,
     youtubeVideos,
+    teams,
     // userActivation,
     // editProfile,
     // forgotPassword,
