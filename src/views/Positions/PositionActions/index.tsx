@@ -13,6 +13,7 @@ import {
     ArchivePositionMutation,
     ArchivePositionMutationVariables,
     EmploymentTypeEnum,
+    PositionsQuery,
     PositionTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
@@ -22,15 +23,12 @@ import PositionModal from '../PositionModal';
 
 import styles from './styles.module.css';
 
+type PositionsItem = NonNullable<PositionsQuery['positions']['results'][number]>;
+
 interface Props {
-    positions: {
-        id: string;
-        name: string;
-        description: string;
-        summary: string;
-        employmentType: EmploymentTypeEnum,
-    };
+    positions: PositionsItem
     onEdit?: (event: Props['positions']) => void;
+    positionRefetch:()=> void;
 }
 
 const ARCHIVE_POSITION = gql`
@@ -57,7 +55,11 @@ const ARCHIVE_POSITION = gql`
     }
 `;
 function PositionActions(props: Props) {
-    const { positions, onEdit } = props;
+    const {
+        positions,
+        onEdit,
+        positionRefetch,
+    } = props;
     const alert = useAlert();
 
     const [
@@ -87,6 +89,7 @@ function PositionActions(props: Props) {
                         'Successfully archived the Position',
                         { variant: 'success' },
                     );
+                    positionRefetch();
                 }
             },
             onError: () => {
@@ -136,7 +139,11 @@ function PositionActions(props: Props) {
                 <PositionModal
                     onClose={setShowEditPositionModalFalse}
                     title="Edit Position"
-                    initialValues={positions}
+                    initialValues={positions ? {
+                        ...positions,
+                        employmentType: positions.employmentType as EmploymentTypeEnum,
+                    } : undefined}
+                    refetchPosition={positionRefetch}
                 />
             )}
         </div>

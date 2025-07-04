@@ -95,6 +95,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdatePositionInput & { id: string }>;
+    refetchPosition: ()=> void;
 }
 
 type PartialFormType = Partial<CreatePositionInput>;
@@ -128,6 +129,7 @@ function PositionModal(props: Props) {
         title,
         onClose,
         initialValues,
+        refetchPosition,
     } = props;
     const alert = useAlert();
 
@@ -167,6 +169,7 @@ function PositionModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    refetchPosition();
                 }
             },
             onError: () => {
@@ -199,6 +202,7 @@ function PositionModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
+                    refetchPosition();
                 }
             },
             onError: () => {
@@ -264,7 +268,7 @@ function PositionModal(props: Props) {
             freeHeight
         >
             <TextInput
-                label="Event Name"
+                label="Position Name"
                 name="name"
                 value={value.name}
                 error={error?.name}

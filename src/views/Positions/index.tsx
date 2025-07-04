@@ -113,6 +113,7 @@ export function Component() {
         },
     };
     const {
+        refetch: positionRefetch,
         data: positionsResponse,
     } = useQuery<PositionsQuery, PositionsQueryVariables>(
         POSITIONS,
@@ -162,14 +163,18 @@ export function Component() {
             'Employment Type',
             (item) => item.employmentType,
         ),
-        createElementColumn<PositionsItem, string, { positions: PositionsItem }>(
-            'actions',
-            'Actions',
-            PositionActions,
-            (_key, item) => ({ positions: item }),
-        ),
+        createElementColumn<PositionsItem, string, {
+            positions: PositionsItem,
+            positionRefetch:(
+            ) => void;
+                }>(
+                'actions',
+                'Actions',
+                PositionActions,
+                (_key, item) => ({ positions: item, positionRefetch }),
+                ),
 
-    ], []);
+    ], [positionRefetch]);
 
     return (
         <Container
@@ -232,7 +237,7 @@ export function Component() {
                 <PositionModal
                     onClose={setShowPositionModalFalse}
                     title={selectedPosition ? 'Edit Position' : 'Add Position'}
-                    initialValues={selectedPosition || undefined}
+                    refetchPosition={positionRefetch}
                 />
             )}
         </Container>

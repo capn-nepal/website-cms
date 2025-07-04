@@ -301,6 +301,7 @@ function JobVacanciesModal(props: Props) {
                 onChange={setFieldValue}
                 error={error?.numberOfVacancies}
             />
+
             <SelectInput
                 label="Position"
                 name="position"
@@ -311,6 +312,7 @@ function JobVacanciesModal(props: Props) {
                 labelSelector={positionLabelSelector}
                 onChange={setFieldValue}
             />
+
         </Modal>
     );
 }
