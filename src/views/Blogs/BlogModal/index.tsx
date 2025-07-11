@@ -112,8 +112,8 @@ function BlogModal(props: Props) {
                         Cancel
                     </Button>
                     <Button
+                        className={styles.saveButton}
                         name="save"
-                        variant="primary"
                         onClick={handleSubmit}
                         disabled={pristine}
                     >

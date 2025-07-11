@@ -66,14 +66,16 @@
     --cms-ui-color-blue-300: #90B5DB;
     --cms-ui-color-blue-400: #6E9AC6;
     --cms-ui-color-blue-500: #4B7EB0;
-    --cms-ui-color-blue-600: #2A6197;
     --cms-ui-color-blue-700: #114A84;
+
+    --cms-ui-color-blue-600: #05445E;
 
     --cms-ui-color-yellow-50: #FFF3DE;
     --cms-ui-color-yellow-100: #FFEECB;
     --cms-ui-color-yellow-250: #FFD99A;
     --cms-ui-color-yellow-400: #FFC165;
-    --cms-ui-color-yellow-550: #FFA732;
+
+    --cms-ui-color-yellow-550: #DA8733;
 
     --cms-ui-color-gray-20: #F2F2F2;
     --cms-ui-color-gray-50: #A1A2A5;

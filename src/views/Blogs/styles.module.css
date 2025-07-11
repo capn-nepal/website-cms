@@ -7,6 +7,10 @@
             width: 100%!important;
         }
     }
+    .add-button{
+        background-color: var( --cms-ui-color-yellow-550);
+        width: 100%;
+    }
     .actions{
         display:flex;
         gap: var(--cms-ui-spacing-md);

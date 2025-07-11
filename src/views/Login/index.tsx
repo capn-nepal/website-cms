@@ -25,7 +25,9 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import loginCoverImage from '#assets/loginCoverImage.jpg';
 import Container from '#components/Container';
+import Heading from '#components/Heading';
 import Page from '#components/Page';
 import UserContext from '#contexts/user';
 import {
@@ -159,63 +161,69 @@ export function Component() {
     ]);
 
     return (
-        <Page
-            className={styles.login}
-        >
+        <Page>
             <Container
                 className={styles.banner}
-                showHeader
-                headingLevel={1}
-                heading="Welcome to CPAN-CMS"
-                headingDescriptionContainerClassName={styles.headingDescription}
-                headingDescription={(
-                    <>
-                        Login to access the CPAN-CMS dashboard,
-                        <br />
-                        Manage content, and securely work with your team
-                    </>
-                )}
-            />
-            <Container
-                className={styles.loginContainer}
-                heading="USER LOGIN"
-                showHeader
             >
-                <Container
-                    className={styles.form}
-                    footerContent={(
-                        <div className={styles.actions}>
-                            <Button
-                                name={undefined}
-                                type="submit"
-                                onClick={handleFormSubmit}
-                                disabled={pristine || loginPending}
-                                variant="primary"
-                            >
-                                Login
-                            </Button>
-                        </div>
-                    )}
-                >
-                    <div className={styles.fields}>
-                        <TextInput
-                            name="email"
-                            label="Email"
-                            value={formValue.email}
-                            onChange={setFieldValue}
-                            error={fieldError?.email}
-                            autoFocus
-                        />
-                        <PasswordInput
-                            name="password"
-                            label="Password"
-                            value={formValue.password}
-                            error={fieldError?.password}
-                            onChange={setFieldValue}
+                <div>
+                    <div className={styles.backgroundLayer}>
+                        <img
+                            className={styles.image}
+                            src={loginCoverImage}
+                            alt="login"
                         />
                     </div>
+                    <div className={styles.content}>
+                        <Heading
+                            level={1}
+                        >
+                            CAPN-CMS
+                        </Heading>
+                        <div className={styles.description}>
+                            Login to access the CAPN-CMS dashboard,
+                            <br />
+                            Manage content, and securely work with your team
+                        </div>
+                    </div>
+                </div>
+            </Container>
 
-                </Container>
+            <Container
+                showHeader
+                className={styles.formContainer}
+                heading="USER LOGIN"
+                childrenContainerClassName={styles.formContent}
+            >
+                <form
+                    className={styles.form}
+                    onSubmit={createSubmitHandler(validate, setError, handleFormSubmit)}
+                >
+                    <TextInput
+                        name="email"
+                        label="Email*"
+                        placeholder="Enter email"
+                        onChange={setFieldValue}
+                        value={formValue?.email}
+                        error={fieldError?.email}
+                        autoFocus
+                    />
+                    <PasswordInput
+                        name="password"
+                        label="Password*"
+                        placeholder="Enter password"
+                        onChange={setFieldValue}
+                        value={formValue?.password}
+                        error={fieldError?.password}
+                    />
+                    <Button
+                        className={styles.loginButton}
+                        disabled={pristine || loginPending}
+                        type="submit"
+                        name="login"
+                    >
+                        Submit
+                    </Button>
+                </form>
             </Container>
         </Page>
     );

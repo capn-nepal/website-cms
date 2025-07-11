@@ -1,49 +1,101 @@
-.login {
-    display:flex;
-    background-color: var(--cms-ui-color-blue-700);
-    
-    .banner{
-        align-items: center;
-        justify-content: center;
-        padding: var(--cms-ui-spacing-2xl) 0 0 var(--cms-ui-spacing-2xl);
-        color: var(--cms-ui-color-faded-white);
+.banner {
+    display: flex;
+    position: relative;
+    flex: 1;
+    background-color: var(--cms-ui-color-blue-600);
+    color: var(--cms-ui-color-faded-white);
 
-        .heading-description{
-            justify-content: center;
-            padding: var(--cms-ui-spacing-lg);
+    .background-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0.2;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+       
+
+        .image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
     }
 
-    .loginContainer {
+    .content {
         display: flex;
-        align-items: center;
+        position: relative;
         flex-direction: column;
         justify-content: center;
-        border-radius: var(--cms-ui-radius-md);
-        box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.08);
-        background-color: var(--cms-ui-color-white);
-        padding: var(--cms-ui-spacing-lg);
-        max-width: 30rem;
+        z-index: 1;
+        padding: var(--cms-ui-spacing-xl);
+        gap: var(--cms-ui-spacing-md);
+        max-width: 40rem;
+    }
+
+    .description {
+        font-size: var(--cms-ui-font-size-md);
+        font-weight: var(--cms-ui-font-weight-medium);
+    }
+}
+
+.form-container {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--cms-ui-color-white-card);
+    padding: var(--cms-ui-spacing-sm);
+    gap: var(--cms-ui-spacing-lg);
+
+    .form-content {
+        width: 35rem;
+        max-width: 90vw;
     }
 
     .form {
         display: flex;
         flex-direction: column;
-        flex-grow: 1;
         gap: var(--cms-ui-spacing-md);
-        
+    }
 
-        .fields {
-            display: flex;
-            flex-direction: column;
-            gap: var(--cms-ui-spacing-md);
+    .login-button {
+        background-color: var(--cms-ui-color-yellow-550);
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .banner {
+        align-items: stretch;
+        flex-direction: column;
+        padding: var(--cms-ui-spacing-md);
+
+        .background-layer {
+            position: relative;
+            width: 100%;
+            height: 200px;
         }
 
-        .actions {
-            display: flex;
-            align-items: center;
-            flex-direction: column;
-            margin-top: var(--cms-ui-spacing-md);
+        .image {
+            object-fit: cover;
+        }
+
+        .content {
+            padding: var(--cms-ui-spacing-sm);
+            text-align: center;
+        }
+    }
+
+    .form-container {
+        padding: var(--cms-ui-spacing-md);
+        gap: var(--cms-ui-spacing-md);
+
+        .form-content {
+            padding: 0;
+            width: 100%;
+           
         }
     }
 }

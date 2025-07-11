@@ -10,7 +10,7 @@
 
     &.active {
         background-color: var(--cms-ui-color-gray-20);
-        color: var(--cms-ui-color-blue-700);
+        color: var(--cms-ui-color-blue-600);
     }
 
     &.disabled {
