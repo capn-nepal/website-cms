@@ -1,24 +1,49 @@
 .login {
-    display: flex;
-    justify-content: center;
+    display:flex;
+    background-color: var(--cms-ui-color-blue-700);
+    
+    .banner{
+        align-items: center;
+        justify-content: center;
+        padding: var(--cms-ui-spacing-2xl) 0 0 var(--cms-ui-spacing-2xl);
+        color: var(--cms-ui-color-faded-white);
 
-    .form {
+        .heading-description{
+            justify-content: center;
+            padding: var(--cms-ui-spacing-lg);
+        }
+    }
+
+    .loginContainer {
         display: flex;
         align-items: center;
         flex-direction: column;
+        justify-content: center;
+        border-radius: var(--cms-ui-radius-md);
+        box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.08);
+        background-color: var(--cms-ui-color-white);
+        padding: var(--cms-ui-spacing-lg);
+        max-width: 30rem;
+    }
+
+    .form {
+        display: flex;
+        flex-direction: column;
         flex-grow: 1;
         gap: var(--cms-ui-spacing-md);
-        justify-content: center;
+        
 
         .fields {
             display: flex;
             flex-direction: column;
+            gap: var(--cms-ui-spacing-md);
         }
 
         .actions {
             display: flex;
             align-items: center;
             flex-direction: column;
+            margin-top: var(--cms-ui-spacing-md);
         }
     }
 }

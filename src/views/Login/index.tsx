@@ -25,6 +25,7 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import Container from '#components/Container';
 import Page from '#components/Page';
 import UserContext from '#contexts/user';
 import {
@@ -95,7 +96,6 @@ export function Component() {
     } = useForm(formSchema, { value: defaultFormValue });
 
     const fieldError = getErrorObject(error);
-
     const [
         triggerLogin,
         { loading: loginPending },
@@ -104,25 +104,27 @@ export function Component() {
         {
             onCompleted: (loginResponse) => {
                 const response = loginResponse?.login;
-                if (!response || !response.result) {
+                if (!response) {
                     return;
                 }
 
                 if (response.ok) {
-                    setUser({
-                        id: response.result.id,
-                        firstName: response.result.firstName,
-                        lastName: response.result.lastName,
-                        email: response.result?.email,
-                    });
+                    if (response.result) {
+                        setUser({
+                            id: response.result.id,
+                            firstName: response.result.firstName,
+                            lastName: response.result.lastName,
+                            email: response.result.email,
+                        });
+                    }
                     alert.show(
                         'Logged in successfully!',
                         { variant: 'success' },
                     );
                     navigate('/');
                 } else {
-                    const errorMessages = response?.errors
-                        ?.map((errors: { messages: string; }) => errors.messages)
+                    const errorMessages = response.errors
+                        ?.map((err: { messages: string; }) => err.messages)
                         .filter(isDefined)
                         .join(', ');
                     alert.show(errorMessages, { variant: 'danger' });
@@ -160,38 +162,61 @@ export function Component() {
         <Page
             className={styles.login}
         >
-            <form
-                className={styles.form}
-                onSubmit={handleFormSubmit}
+            <Container
+                className={styles.banner}
+                showHeader
+                headingLevel={1}
+                heading="Welcome to CPAN-CMS"
+                headingDescriptionContainerClassName={styles.headingDescription}
+                headingDescription={(
+                    <>
+                        Login to access the CPAN-CMS dashboard,
+                        <br />
+                        Manage content, and securely work with your team
+                    </>
+                )}
+            />
+            <Container
+                className={styles.loginContainer}
+                heading="USER LOGIN"
+                showHeader
             >
-                <div className={styles.fields}>
-                    <TextInput
-                        name="email"
-                        label="Email"
-                        value={formValue.email}
-                        onChange={setFieldValue}
-                        error={fieldError?.email}
-                        autoFocus
-                    />
-                    <PasswordInput
-                        name="password"
-                        label="Password"
-                        value={formValue.password}
-                        error={fieldError?.password}
-                        onChange={setFieldValue}
-                    />
-                </div>
-                <div className={styles.actions}>
-                    <Button
-                        name={undefined}
-                        type="submit"
-                        onClick={handleFormSubmit}
-                        disabled={pristine || loginPending}
-                    >
-                        Login
-                    </Button>
-                </div>
-            </form>
+                <Container
+                    className={styles.form}
+                    footerContent={(
+                        <div className={styles.actions}>
+                            <Button
+                                name={undefined}
+                                type="submit"
+                                onClick={handleFormSubmit}
+                                disabled={pristine || loginPending}
+                                variant="primary"
+                            >
+                                Login
+                            </Button>
+                        </div>
+                    )}
+                >
+                    <div className={styles.fields}>
+                        <TextInput
+                            name="email"
+                            label="Email"
+                            value={formValue.email}
+                            onChange={setFieldValue}
+                            error={fieldError?.email}
+                            autoFocus
+                        />
+                        <PasswordInput
+                            name="password"
+                            label="Password"
+                            value={formValue.password}
+                            error={fieldError?.password}
+                            onChange={setFieldValue}
+                        />
+                    </div>
+
+                </Container>
+            </Container>
         </Page>
     );
 }
