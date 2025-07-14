@@ -9,8 +9,8 @@ import { nonFieldError } from '@togglecorp/toggle-form';
     [ nonFieldError]?: string | undefined;
     [key: string]: string | Error | undefined;
 }
-
- interface ObjectError {
+/** @knipignore */
+export interface ObjectError {
     clientId: string | undefined;
     field: string;
     messages?: string;
@@ -23,7 +23,7 @@ interface ArrayError {
     messages?: string;
     objectErrors?: ObjectError[];
 }
-/** @knipignore */
+
 function transformObject(errors: ObjectError[] | undefined): Error | undefined {
     if (isNotDefined(errors)) {
         return undefined;
