@@ -8,7 +8,7 @@ on:
 
 env:
   APP_TITLE: CAPN CMS
-  APP_GRAPHQL_CODEGEN_ENDPOINT: /backend/schema.graphql
+  APP_GRAPHQL_CODEGEN_ENDPOINT: ./backend/schema.graphql
   APP_GRAPHQL_ENDPOINT: http://localhost:8000/graphql/
   GITHUB_WORKFLOW: true
 
