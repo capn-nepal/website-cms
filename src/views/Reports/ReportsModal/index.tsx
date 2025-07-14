@@ -34,6 +34,7 @@ import {
     UpdateReportMutationVariables,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import { transformToFormError } from '#utils/errorTransform';
 
 import styles from './styles.module.css';
 
@@ -206,11 +207,12 @@ function ReportModal(props: Props) {
                 const updateReport = response.updateReport as ReportTypeMutationResponseType;
                 const { ok, errors } = updateReport;
                 if (errors) {
+                    setError(transformToFormError(errors));
                     const errorMessages = errors
                         ?.map((message: { messages: string; }) => message.messages)
                         .filter((msg: string) => msg)
                         .join(', ');
-                    alert.show(errorMessages);
+                    alert.show(errorMessages, { variant: 'danger' });
                 } else if (ok) {
                     alert.show(
                         'Report Successfully updated',

@@ -17,6 +17,7 @@ import {
     Table,
 } from '@togglecorp/toggle-ui';
 
+import Chip, { ChipVariant } from '#components/Chip';
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
 import {
@@ -69,6 +70,11 @@ const statusOptions: {
 ];
 
 const PAGE_SIZE = 10;
+
+const statusVariant: Record<string, string> = {
+    Draft: 'default',
+    Published: 'warning',
+};
 
 const keySelector = (item: ReportsItem) => item.id;
 const statusKeySelector = (option: { status: StatusEnum }) => option.status;
@@ -140,11 +146,6 @@ export function Component() {
             'Published Date',
             (item) => item.publishedDate,
         ),
-        createStringColumn<ReportsItem, string | number>(
-            'status',
-            'Status',
-            (item) => item.status,
-        ),
         createElementColumn<ReportsItem, string, { url: string }>(
             'reportFile',
             'Report File',
@@ -159,6 +160,28 @@ export function Component() {
                 </a>
             ),
             (_, item) => ({ url: item.reportFile.url }),
+        ),
+        createElementColumn<ReportsItem, string,
+        { status: string | undefined; variant: string }>(
+            'status',
+            'Status',
+            ({ status, variant }) => (
+                <Chip
+                    label={status}
+                    variant={variant as ChipVariant}
+                />
+            ),
+            (_key, item) => {
+                const statusLabel = statusOptions.find(
+                    (statusOption) => statusOption.status === item.status,
+                )?.label;
+                const variant = statusLabel ? statusVariant[statusLabel] : 'default';
+                return {
+                    status: statusLabel,
+                    variant,
+                };
+            },
+            { columnClassName: styles.actions },
         ),
         createElementColumn<ReportsItem, string, {
             report: ReportsItem;

@@ -3,7 +3,6 @@ import { _cs } from '@togglecorp/fujs';
 
 import styles from './styles.module.css';
 
-/** @knipignore */
 export type ChipVariant = 'default' | 'primary' |'success'| 'danger' | 'warning';
 
 const chipVariantToClassNameMap: Record<ChipVariant, string> = {
