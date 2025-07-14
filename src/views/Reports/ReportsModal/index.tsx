@@ -44,6 +44,10 @@ const CREATE_REPORT = gql`
                 errors
                 ok
                 result {
+                    coverImage {
+                        name
+                        url
+                    }
                     description
                     id
                     publishedDate
@@ -127,6 +131,7 @@ const formSchema: FormSchema = {
         },
         reportFile: {},
         status: {},
+        coverImage: {},
     }),
 };
 
@@ -144,10 +149,10 @@ function ReportModal(props: Props) {
         description: initialValues?.description || '',
         publishedDate: initialValues?.publishedDate || undefined,
         reportFile: initialValues?.reportFile,
-        status: initialValues?.status || undefined, // Default status for editing
+        status: initialValues?.status || undefined,
     };
-
-    const [filePreview, setFilePreview] = useState<File | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [reportFile, setReportFilePreview] = useState<File | null>(null);
 
     const {
         value,
@@ -223,32 +228,35 @@ function ReportModal(props: Props) {
         },
     );
 
-    const handleSubmit = useCallback(() => {
-        createSubmitHandler(validate, setError, (finalValue: PartialFormType) => {
-            if (initialValues?.id) {
-                updateReportTrigger({
-                    variables: {
-                        pk: initialValues.id,
-                        data: finalValue as UpdateReportInput,
-                    },
-                    context: {
-                        hasUpload: true,
-                    },
-                });
-            } else {
+    const handleSubmit = useCallback(
+        () => {
+            createSubmitHandler(validate, setError, (finalValue: PartialFormType) => {
+                if (initialValues?.id) {
+                    updateReportTrigger({
+                        variables: {
+                            pk: initialValues.id,
+                            data: finalValue as UpdateReportInput,
+                        },
+                        context: {
+                            hasUpload: true,
+                        },
+                    });
+                } else {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { status, ...createData } = finalValue;
-                createReportTrigger({
-                    variables: {
-                        data: createData as CreateReportInput,
-                    },
-                    context: {
-                        hasUpload: true,
-                    },
-                });
-            }
-        })();
-    }, [validate, setError, createReportTrigger, updateReportTrigger, initialValues]);
+                    const { status, ...createData } = finalValue;
+                    createReportTrigger({
+                        variables: {
+                            data: createData as CreateReportInput,
+                        },
+                        context: {
+                            hasUpload: true,
+                        },
+                    });
+                }
+            })();
+        },
+        [validate, setError, createReportTrigger, updateReportTrigger, initialValues],
+    );
     const error = getErrorObject(formError);
 
     return (
@@ -293,6 +301,19 @@ function ReportModal(props: Props) {
                 error={error?.description}
                 onChange={setFieldValue}
             />
+            <FileInput
+                label="Cover Image"
+                name="coverImage"
+                value={imageFile}
+                accept="image/*"
+                onChange={(file, name) => {
+                    setFieldValue(file, name);
+                    setImageFile(file || null);
+                }}
+            >
+                Choose Cover Image
+            </FileInput>
+
             {initialValues?.id && (
                 <SelectInput
                     label="Status"
@@ -315,10 +336,11 @@ function ReportModal(props: Props) {
             <FileInput
                 label="Report File"
                 name="reportFile"
-                value={filePreview}
+                value={reportFile}
+                accept=".pdf, .doc, .docx, .txt, .xlsx"
                 onChange={(file, name) => {
                     setFieldValue(file, name);
-                    setFilePreview(file || null);
+                    setReportFilePreview(file || null);
                 }}
             >
                 Choose a File

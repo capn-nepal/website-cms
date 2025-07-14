@@ -1,5 +1,3 @@
-// ReportActions.tsx
-
 import { useCallback } from 'react';
 import { IoPencil } from 'react-icons/io5';
 import { Button } from '@togglecorp/toggle-ui';
@@ -40,7 +38,6 @@ function ReportActions(props: Props) {
             alert.show('Invalid report data');
             return;
         }
-
         setShowEditReportModalTrue();
         onEdit(report);
     }, [report, alert, setShowEditReportModalTrue, onEdit]);

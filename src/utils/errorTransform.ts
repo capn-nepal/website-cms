@@ -9,7 +9,7 @@ import { nonFieldError } from '@togglecorp/toggle-form';
     [ nonFieldError]?: string | undefined;
     [key: string]: string | Error | undefined;
 }
-/** @knipignore */
+
 export interface ObjectError {
     clientId: string | undefined;
     field: string;
@@ -23,7 +23,7 @@ interface ArrayError {
     messages?: string;
     objectErrors?: ObjectError[];
 }
-
+/* @knipignore */
 function transformObject(errors: ObjectError[] | undefined): Error | undefined {
     if (isNotDefined(errors)) {
         return undefined;
@@ -61,7 +61,7 @@ function transformObject(errors: ObjectError[] | undefined): Error | undefined {
         ...finalFieldErrors,
     };
 }
-
+/* @knipignore */
 function transformArray(errors: (ArrayError | null)[] | undefined): Error | undefined {
     if (isNotDefined(errors)) {
         return undefined;
@@ -80,5 +80,5 @@ function transformArray(errors: (ArrayError | null)[] | undefined): Error | unde
         ),
     };
 }
-
+/* @knipignore */
 export const transformToFormError = transformObject;
