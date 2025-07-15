@@ -3,8 +3,8 @@
 }
 
 :root {
-    --cms-ui-font-family-manrope: "Manrope", sans-serif;
-    --cms-ui-font-family-assistant: "Assistant", sans-serif;
+    --cms-ui-font-family:"sans-serif";
+    --cms-ui-font-family-assistant: sans-serif;
 
     --base-font-size: 1rem;
     --base-spacing: 1rem;
@@ -45,6 +45,8 @@
     --cms-ui-radius-lg: var(--base-radius);
     --cms-ui-radius-xl: calc(var(--base-radius) * 2);
 
+    --cms-color-background-input-section-light: rgba(0, 29, 71, .1);
+
     --cms-ui-width-separator-sm: 1pt;
     --cms-ui-width-separator-md: 2pt;
     --cms-ui-width-separator-lg: 4pt;
@@ -66,16 +68,14 @@
     --cms-ui-color-blue-300: #90B5DB;
     --cms-ui-color-blue-400: #6E9AC6;
     --cms-ui-color-blue-500: #4B7EB0;
+    --cms-ui-color-blue-600: #2A6197;
     --cms-ui-color-blue-700: #114A84;
-
-    --cms-ui-color-blue-600: #05445E;
 
     --cms-ui-color-yellow-50: #FFF3DE;
     --cms-ui-color-yellow-100: #FFEECB;
     --cms-ui-color-yellow-250: #FFD99A;
     --cms-ui-color-yellow-400: #FFC165;
-
-    --cms-ui-color-yellow-550: #DA8733;
+    --cms-ui-color-yellow-550: #FFA732;
 
     --cms-ui-color-gray-20: #F2F2F2;
     --cms-ui-color-gray-50: #A1A2A5;
@@ -131,7 +131,7 @@ html {
 
 body {
     color: var(--cms-ui-primary-text-color);
-    font-family: var(--cms-ui-font-family-manrope);
+    font-family: var(--cms-ui-font-family);
     font-size: var(--cms-ui-font-size-md);
     font-weight: var(--cms-ui-font-weight-medium);
     font-style: normal;
