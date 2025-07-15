@@ -118,7 +118,7 @@ export function Component() {
 
     const {
         data: reportsResponse,
-        refetch: reportsRefetch,
+        refetch: onReportUpdate,
     } = useQuery<ReportsQuery, ReportsQueryVariables>(
         REPORTS,
         { variables },
@@ -185,7 +185,7 @@ export function Component() {
         ),
         createElementColumn<ReportsItem, string, {
             report: ReportsItem;
-            reportRefetch:(
+            onReportEdit:(
             ) => void;
             onEdit: (report: ReportsItem) => void;
                 }>(
@@ -194,11 +194,11 @@ export function Component() {
                 ReportActions,
                 (_key, item) => ({
                     report: item,
-                    reportRefetch: reportsRefetch,
+                    onReportEdit: onReportUpdate,
                     onEdit: setSelectedReport,
                 }),
                 ),
-    ]), [reportsRefetch]);
+    ]), [onReportUpdate]);
 
     return (
         <Container
@@ -252,7 +252,7 @@ export function Component() {
                 <ReportModal
                     onClose={setShowReportModalFalse}
                     title={selectedReport ? 'Edit Report' : 'Add Report'}
-                    reportsRefetch={reportsRefetch}
+                    onReportUpdate={onReportUpdate}
                 />
             )}
         </Container>
