@@ -15,14 +15,14 @@ type ReportsItem = NonNullable<ReportsQuery['reports']['results'][number]>;
 interface Props {
     report: ReportsItem;
     onEdit: (report: ReportsItem) => void;
-    reportRefetch: () => void;
+    onReportEdit: () => void;
 }
 
 function ReportActions(props: Props) {
     const {
         report,
         onEdit,
-        reportRefetch,
+        onReportEdit,
     } = props;
 
     const alert = useAlert();
@@ -57,7 +57,7 @@ function ReportActions(props: Props) {
                     onClose={setShowEditReportModalFalse}
                     title="Edit Report"
                     initialValues={report}
-                    reportsRefetch={reportRefetch}
+                    onReportUpdate={onReportEdit}
                 />
             )}
         </div>

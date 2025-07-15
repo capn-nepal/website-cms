@@ -1,7 +1,4 @@
-import {
-    useCallback,
-    useState,
-} from 'react';
+import { useCallback } from 'react';
 import {
     gql,
     useMutation,
@@ -27,7 +24,6 @@ import {
     CreateReportInput,
     CreateReportMutation,
     CreateReportMutationVariables,
-    ReportTypeMutationResponseType,
     StatusEnum,
     UpdateReportInput,
     UpdateReportMutation,
@@ -100,7 +96,7 @@ interface Props {
     onClose: () => void;
     title: string;
     initialValues?: Partial<UpdateReportInput & { id: string }>;
-    reportsRefetch: () => void;
+    onReportUpdate: () => void;
 }
 const statusOptions: {
     label: string;
@@ -141,7 +137,7 @@ function ReportModal(props: Props) {
         onClose,
         title,
         initialValues,
-        reportsRefetch,
+        onReportUpdate,
     } = props;
     const alert = useAlert();
 
@@ -152,9 +148,6 @@ function ReportModal(props: Props) {
         reportFile: initialValues?.reportFile,
         status: initialValues?.status || undefined,
     };
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [reportFile, setReportFilePreview] = useState<File | null>(null);
-
     const {
         value,
         error: formError,
@@ -171,21 +164,25 @@ function ReportModal(props: Props) {
         CREATE_REPORT,
         {
             onCompleted: (response) => {
-                const createReport = response.createReport as ReportTypeMutationResponseType;
-                const { ok, errors } = createReport;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string; }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Report Successfully created',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    reportsRefetch();
+                const createReportResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (createReportResponse.createReport.__typename === 'ReportTypeMutationResponseType') {
+                    const { ok, errors } = createReportResponse.createReport;
+
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string; }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Report Successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onReportUpdate();
+                    }
                 }
             },
             onError: () => {
@@ -204,21 +201,24 @@ function ReportModal(props: Props) {
         UPDATE_REPORT,
         {
             onCompleted: (response) => {
-                const updateReport = response.updateReport as ReportTypeMutationResponseType;
-                const { ok, errors } = updateReport;
-                if (errors) {
-                    setError(transformToFormError(errors));
-                    const errorMessages = errors
-                        ?.map((message: { messages: string; }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages, { variant: 'danger' });
-                } else if (ok) {
-                    alert.show(
-                        'Report Successfully updated',
-                        { variant: 'success' },
-                    );
-                    onClose();
+                const updateReportResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (updateReportResponse.updateReport.__typename === 'ReportTypeMutationResponseType') {
+                    const { ok, errors } = updateReportResponse.updateReport;
+                    if (errors) {
+                        setError(transformToFormError(errors));
+                        const errorMessages = errors
+                            ?.map((message: { messages: string; }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages, { variant: 'danger' });
+                    } else if (ok) {
+                        alert.show(
+                            'Report Successfully updated',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                    }
                 }
             },
             onError: () => {
@@ -306,12 +306,9 @@ function ReportModal(props: Props) {
             <FileInput
                 label="Cover Image"
                 name="coverImage"
-                value={imageFile}
+                value={value.coverImage}
                 accept="image/*"
-                onChange={(file, name) => {
-                    setFieldValue(file, name);
-                    setImageFile(file || null);
-                }}
+                onChange={setFieldValue}
             >
                 Choose Cover Image
             </FileInput>
@@ -338,12 +335,9 @@ function ReportModal(props: Props) {
             <FileInput
                 label="Report File"
                 name="reportFile"
-                value={reportFile}
+                value={value.reportFile}
                 accept=".pdf, .doc, .docx, .txt, .xlsx"
-                onChange={(file, name) => {
-                    setFieldValue(file, name);
-                    setReportFilePreview(file || null);
-                }}
+                onChange={setFieldValue}
             >
                 Choose a File
             </FileInput>
