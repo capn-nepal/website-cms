@@ -45,6 +45,8 @@
     --cms-ui-radius-lg: var(--base-radius);
     --cms-ui-radius-xl: calc(var(--base-radius) * 2);
 
+    --cms-color-background-input-section-light: rgba(0, 29, 71, .1);
+
     --cms-ui-width-separator-sm: 1pt;
     --cms-ui-width-separator-md: 2pt;
     --cms-ui-width-separator-lg: 4pt;

@@ -1,8 +1,8 @@
 .alert-container {
     isolation: isolate;
     position: fixed;
-    top: 0;
-    left: 50%;
+    bottom: 0;
+    left: 85%;
     transform: translateX(-50%);
     z-index: 1;
 
@@ -17,5 +17,6 @@
 
     .alert {
         margin: var(--cms-ui-spacing-sm) 0;
+        background-color:var(--cms-ui-color-white);
     }
 }

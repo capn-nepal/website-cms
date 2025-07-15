@@ -12,6 +12,7 @@ import { Button } from '@togglecorp/toggle-ui';
 import {
     ArchiveEventMutation,
     ArchiveEventMutationVariables,
+    EventsQuery,
     EventTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
@@ -21,16 +22,12 @@ import EventModal from '../EventModal';
 
 import styles from './styles.module.css';
 
+type EventItem = NonNullable<EventsQuery['events']['results'][number]>;
+
 interface Props {
-    event: {
-        id: string;
-        name: string;
-        description: string;
-        location?: string | null;
-        startDate: string;
-        endDate: string;
-    };
-    onEdit?: (event: Props['event']) => void;
+    event: EventItem;
+    onEdit?: (event: EventItem) => void;
+    refetchEvent: () => void;
 }
 
 const ARCHIVE_EVENT = gql`
@@ -57,15 +54,22 @@ const ARCHIVE_EVENT = gql`
         }
     }
 `;
+
 function EventActions(props: Props) {
-    const { event, onEdit } = props;
+    const {
+        event,
+        onEdit,
+        refetchEvent,
+    } = props;
+
     const alert = useAlert();
 
     const [
         showEditEventModal, {
             setTrue: setShowEditEventModalTrue,
             setFalse: setShowEditEventModalFalse,
-        }] = useBooleanState(false);
+        },
+    ] = useBooleanState(false);
 
     const [
         triggerArchiveEvent,
@@ -76,6 +80,7 @@ function EventActions(props: Props) {
             onCompleted: (response) => {
                 const archiveEvent = response.archiveEvent as EventTypeMutationResponseType;
                 const { ok, errors } = archiveEvent;
+
                 if (errors) {
                     const errorMessages = errors
                         ?.map((message: { messages: string }) => message.messages)
@@ -83,17 +88,12 @@ function EventActions(props: Props) {
                         .join(', ');
                     alert.show(errorMessages);
                 } else if (ok) {
-                    alert.show(
-                        'Successfully archived the event',
-                        { variant: 'success' },
-                    );
+                    alert.show('Successfully archived the event', { variant: 'success' });
+                    refetchEvent();
                 }
             },
             onError: () => {
-                alert.show(
-                    'Failed to archive the event',
-                    { variant: 'danger' },
-                );
+                alert.show('Failed to archive the event', { variant: 'danger' });
             },
         },
     );
@@ -107,7 +107,9 @@ function EventActions(props: Props) {
             alert.show('Invalid event data');
             return;
         }
+
         setShowEditEventModalTrue();
+
         if (onEdit) {
             onEdit(event);
         }
@@ -137,9 +139,11 @@ function EventActions(props: Props) {
                     onClose={setShowEditEventModalFalse}
                     title="Edit Event"
                     initialValues={event}
+                    eventRefetch={refetchEvent}
                 />
             )}
         </div>
     );
 }
+
 export default EventActions;

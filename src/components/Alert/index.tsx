@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import {
     IoCheckmarkCircleOutline,
     IoCloseOutline,
@@ -12,11 +13,14 @@ import { AlertType } from '#contexts/alert';
 
 import styles from './styles.module.css';
 
-interface Props {
+/** @knipignore */
+export interface Props<N> {
+    name: N;
     className?: string;
     type?: AlertType;
     title?: React.ReactNode;
     description?: React.ReactNode;
+    onCloseButtonClick?: (name:N) => void;
     nonDismissable?: boolean;
 }
 
@@ -38,14 +42,24 @@ const icon: {
     warning: <IoWarningOutline className={styles.icon} />,
 };
 
-function Alert(props: Props) {
+function Alert<N extends string>(props: Props<N>) {
     const {
+        name,
         className,
         type = 'info',
         title,
         description,
+        onCloseButtonClick,
         nonDismissable,
     } = props;
+    const handleCloseButtonClick = useCallback(
+        () => {
+            if (onCloseButtonClick) {
+                onCloseButtonClick(name);
+            }
+        },
+        [onCloseButtonClick, name],
+    );
 
     return (
         <Container
@@ -63,6 +77,7 @@ function Alert(props: Props) {
                     name={undefined}
                     variant="default"
                     title="Close"
+                    onClick={handleCloseButtonClick}
                     transparent
                 >
                     <IoCloseOutline className={styles.closeIcon} />

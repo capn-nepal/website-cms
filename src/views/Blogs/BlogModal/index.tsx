@@ -1,5 +1,10 @@
 import { useCallback } from 'react';
 import {
+    gql,
+    useMutation,
+    useQuery,
+} from '@apollo/client';
+import {
     createSubmitHandler,
     getErrorObject,
     ObjectSchema,
@@ -8,28 +13,83 @@ import {
 } from '@togglecorp/toggle-form';
 import {
     Button,
+    DateInput,
     Modal,
+    SelectInput,
     TextArea,
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import FileInput from '#components/FileInput';
+import MarkdownEditor from '#components/MarkdownEditor';
+import {
+    AuthorsQuery,
+    AuthorsQueryVariables,
+    CreateBlogInput,
+    CreateBlogMutation,
+    CreateBlogMutationVariables,
+} from '#generated/types/graphql';
+import useAlert from '#hooks/useAlert';
+import { transformToFormError } from '#utils/errorTransform';
+
 import styles from './styles.module.css';
 
-type BlogItems ={
-    title: string;
-    description: string;
-    author?: string;
-    content?: string;
-    publishedDate?: string;
-    coverImage?: string;
-}
+const CREATE_BLOG = gql`
+    mutation CreateBlog($data: CreateBlogInput!) {
+        createBlog(data: $data) {
+            ... on BlogTypeMutationResponseType {
+                errors
+                ok
+                result {
+                    author {
+                        name
+                    }
+                    content
+                    coverImage {
+                    url
+                    }
+                    description
+                    featured
+                    id
+                    publishedDate
+                    status
+                    title
+                }
+            }
+            ... on OperationInfo {
+                __typename
+                messages {
+                    message
+                }
+            }
+        }
+    }
+`;
+const AUTHORS_QUERY = gql`
+    query Authors($pagination: OffsetPaginationInput) {
+        authors(pagination: $pagination) {
+            results {
+                id
+                name
+            }
+        }
+    }
+`;
 
 interface Props {
     onClose: () => void;
-    onSuccess?: () => void;
+    onBlogAdd:()=> void;
 }
+const featureOption = [
+    { value: true, label: 'Yes' },
+    { value: false, label: 'No' },
+];
+const authorKeySelector = (option: { value: string; label: string }) => option.value;
+const authorLabelSelector = (option: { value: string; label: string }) => option.label;
+const featureKeySelector = (option: { value: boolean }) => option.value;
+const featureLabelSelector = (option: { label: string }) => option.label;
 
-type PartialFormType = Partial<BlogItems>;
+type PartialFormType = Partial<CreateBlogInput>;
 type FormSchema = ObjectSchema<PartialFormType>;
 type FormSchemaFields = ReturnType<FormSchema['fields']>;
 
@@ -56,6 +116,7 @@ const formSchema: FormSchema = {
             requiredValidation: requiredStringCondition,
         },
         coverImage: {},
+        featured: {},
     }),
 };
 
@@ -64,8 +125,9 @@ const defaultFormValues: PartialFormType = {};
 function BlogModal(props: Props) {
     const {
         onClose,
-        onSuccess,
+        onBlogAdd,
     } = props;
+    const alert = useAlert();
 
     const {
         value,
@@ -76,32 +138,75 @@ function BlogModal(props: Props) {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
-    const handleSubmitSuccess = useCallback((formValues: PartialFormType) => {
-        console.info('Form submitted:', formValues);
+    const {
+        data: authorsResponse,
+    } = useQuery<AuthorsQuery, AuthorsQueryVariables>(
+        AUTHORS_QUERY,
+    );
 
-        if (onSuccess) {
-            onSuccess();
-        }
-
-        onClose();
-    }, [onClose, onSuccess]);
-
+    const authorOptions = authorsResponse?.authors.results.map((author: {
+        id: string; name: string; }) => ({
+        value: author.id,
+        label: author.name,
+    })) ?? [];
+    const [
+        createBlogResponse,
+        { loading: blogLoading },
+    ] = useMutation<CreateBlogMutation, CreateBlogMutationVariables>(
+        CREATE_BLOG,
+        {
+            onCompleted: (response) => {
+                const { createBlog } = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (createBlog.__typename === 'BlogTypeMutationResponseType') {
+                    const { ok, errors } = createBlog;
+                    if (errors) {
+                        setError(transformToFormError(errors));
+                        const errorMessages = errors
+                            ?.map((message: { messages: string; }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages, { variant: 'danger' });
+                    } else if (ok) {
+                        alert.show(
+                            'Blog is successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onBlogAdd();
+                    }
+                }
+            },
+            onError: () => {
+                alert.show(
+                    'Failed to create a blog',
+                    { variant: 'danger' },
+                );
+            },
+        },
+    );
+    const handleAddBlogSubmit = useCallback((finalValue: PartialFormType) => {
+        createBlogResponse({
+            variables: {
+                data: finalValue as CreateBlogInput,
+            },
+            context: {
+                hasUpload: true,
+            },
+        });
+    }, [createBlogResponse]);
     const handleSubmit = useCallback(() => {
-        createSubmitHandler(
-            validate,
-            setError,
-            handleSubmitSuccess,
-        )();
-    }, [validate, setError, handleSubmitSuccess]);
+        createSubmitHandler(validate, setError, handleAddBlogSubmit)();
+    }, [validate, setError, handleAddBlogSubmit]);
 
     const error = getErrorObject(formError);
 
     return (
         <Modal
             className={styles.blogModal}
-            heading={value ? 'Edit Blog' : 'Add Blog'}
+            heading="Add Blog"
             onClose={onClose}
-            size="medium"
+            size="large"
             footer={(
                 <div className={styles.footerContent}>
                     <Button
@@ -115,16 +220,15 @@ function BlogModal(props: Props) {
                         name="save"
                         variant="primary"
                         onClick={handleSubmit}
-                        disabled={pristine}
+                        disabled={pristine || blogLoading}
                     >
                         Save
                     </Button>
                 </div>
             )}
-            freeHeight
         >
             <TextInput
-                label="Event Name"
+                label="Title"
                 name="title"
                 value={value.title}
                 error={error?.title}
@@ -137,19 +241,50 @@ function BlogModal(props: Props) {
                 error={error?.description}
                 onChange={setFieldValue}
             />
-            <TextInput
-                label="Author Name"
+            <SelectInput
+                label="Authors"
                 name="author"
+                options={authorOptions}
                 value={value.author}
-                error={error?.author}
+                keySelector={authorKeySelector}
+                labelSelector={authorLabelSelector}
                 onChange={setFieldValue}
             />
-            <TextInput
-                label="Image URL"
-                name="coverImage"
-                value={value.coverImage}
-                error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
+            <SelectInput
+                label="Featured"
+                name="featured"
+                options={featureOption}
+                value={value.featured}
+                error={error?.featured}
+                keySelector={featureKeySelector}
+                labelSelector={featureLabelSelector}
                 onChange={setFieldValue}
+            />
+            <DateInput
+                label="Published date"
+                name="publishedDate"
+                value={value.publishedDate}
+                error={typeof error?.publishedDate === 'string' ? error.publishedDate : undefined}
+                onChange={setFieldValue}
+            />
+            <FileInput
+                label="Cover Image"
+                name="coverImage"
+                accept="image/*"
+                value={value.coverImage as File | undefined | null}
+                onChange={setFieldValue}
+                error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
+                showFileName
+            >
+                Choose Image
+            </FileInput>
+            <MarkdownEditor
+                label="Blog Content"
+                name="content"
+                value={value.content ?? undefined}
+                onChange={setFieldValue}
+                previewStyle="vertical"
+                height="400px"
             />
         </Modal>
     );

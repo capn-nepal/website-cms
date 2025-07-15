@@ -3,7 +3,7 @@
     border-radius: var(--cms-ui-border-radius-md);
      /* FIXME: use token for box shadow. */
     box-shadow: 0 4pt 16pt -6pt rgb(0 0 0 / 1);
-    width: calc(14rem + 10vw);
+    width: calc(15rem + 11vw);
     color: var(--cms-ui-primary-text-color);
 }
 .icon {

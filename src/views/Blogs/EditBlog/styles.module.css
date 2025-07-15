@@ -1,4 +1,5 @@
-.blog-modal {
+.container {
+    padding: var(--cms-ui-spacing-lg) var(--cms-ui-spacing-2xl);
 
     .form{
         display: grid;
@@ -8,16 +9,13 @@
         .full-size-input {
             grid-column: 1 / -1; 
         }
-        
-        .column-group{
-            display: grid;
-            grid-template-columns: repeat(2, 1fr); 
-            gap: var(--cms-ui-spacing-md); 
-        }
     }
-    .footer-content{
+
+    .action-content{
         display: flex;
         justify-content: flex-end;
         gap: var(--cms-ui-spacing-md);
     }
+ 
 }
+

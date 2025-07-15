@@ -30,7 +30,7 @@ const homeIndex = customWrapRoute({
         eagerLoad: true,
         render: Navigate,
         props: {
-            to: 'dashboard',
+            to: 'blogs',
             replace: true,
         },
     },
@@ -40,19 +40,19 @@ const homeIndex = customWrapRoute({
     },
 });
 
-const dashboard = customWrapRoute({
-    parent: homeLayout,
-    path: 'dashboard',
-    component: {
-        render: () => import('#views/Dashboard'),
-        props: {},
-    },
-    wrapperComponent: Auth,
-    context: {
-        title: 'Dashboard',
-        visibility: 'anything',
-    },
-});
+// const dashboard = customWrapRoute({
+//     parent: homeLayout,
+//     path: 'dashboard',
+//     component: {
+//         render: () => import('#views/Dashboard'),
+//         props: {},
+//     },
+//     wrapperComponent: Auth,
+//     context: {
+//         title: 'Dashboard',
+//         visibility: 'anything',
+//     },
+// });
 
 const blogs = customWrapRoute({
     parent: homeLayout,
@@ -163,6 +163,20 @@ const events = customWrapRoute({
     },
 });
 
+const editBlog = customWrapRoute({
+    parent: homeLayout,
+    path: 'edit-blog/:id',
+    component: {
+        render: () => import('#views/Blogs/EditBlog'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Edit Blog',
+        visibility: 'anything',
+    },
+});
+
 /*
 const userManagement = customWrapRoute({
     parent: homeLayout,
@@ -174,20 +188,6 @@ const userManagement = customWrapRoute({
     wrapperComponent: Auth,
     context: {
         title: 'User Management',
-        visibility: 'anything',
-    },
-});
-
-const editProfile = customWrapRoute({
-    parent: homeLayout,
-    path: 'edit-profile',
-    component: {
-        render: () => import('#views/EditProfile'),
-        props: {},
-    },
-    wrapperComponent: Auth,
-    context: {
-        title: 'Edit Profile',
         visibility: 'anything',
     },
 });
@@ -292,7 +292,7 @@ const wrappedRoutes = {
     rootLayout,
     homeLayout,
     homeIndex,
-    dashboard,
+    // dashboard,
     blogs,
     events,
     login,
@@ -301,6 +301,7 @@ const wrappedRoutes = {
     reports,
     podcast,
     youtubeVideos,
+    editBlog,
     // userActivation,
     // editProfile,
     // forgotPassword,

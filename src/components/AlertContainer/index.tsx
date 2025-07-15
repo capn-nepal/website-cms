@@ -1,4 +1,5 @@
 import {
+    useCallback,
     useContext,
     useEffect,
     useRef,
@@ -36,14 +37,27 @@ function AlertContainer(props: Props) {
         });
     }, [alerts, removeAlert]);
 
+    const handleAlertCloseButtonClick = useCallback(
+        (name: string) => {
+            const timeout = dismissTimeout.current;
+            window.clearTimeout(timeout[alert.name]);
+
+            removeAlert(name);
+            delete dismissTimeout.current[name];
+        },
+        [removeAlert],
+    );
+
     return (
         <Portal>
             <div className={_cs(styles.alertContainer, className)}>
                 {alerts.map((alert) => (
                     <Alert
+                        name={alert.name}
                         key={alert.name}
                         className={styles.alert}
                         nonDismissable={alert.nonDismissable}
+                        onCloseButtonClick={handleAlertCloseButtonClick}
                         type={alert.variant}
                         title={alert.title}
                         description={alert.description}

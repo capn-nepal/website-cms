@@ -104,11 +104,16 @@ export function Component() {
         {
             onCompleted: (loginResponse) => {
                 const response = loginResponse?.login;
-                if (!response || !response.result) {
+
+                if (!response) {
+                    alert.show(
+                        'Unknown login response',
+                        { variant: 'danger' },
+                    );
                     return;
                 }
 
-                if (response.ok) {
+                if (response.ok && response.result) {
                     setUser({
                         id: response.result.id,
                         firstName: response.result.firstName,
@@ -124,7 +129,8 @@ export function Component() {
                     const errorMessages = response?.errors
                         ?.map((errors: { messages: string; }) => errors.messages)
                         .filter(isDefined)
-                        .join(', ');
+                        .join(', ')
+                        || 'Login failed. Please try again.';
                     alert.show(errorMessages, { variant: 'danger' });
                 }
             },

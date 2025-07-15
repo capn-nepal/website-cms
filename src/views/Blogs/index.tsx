@@ -1,5 +1,4 @@
 import {
-    useCallback,
     useMemo,
     useState,
 } from 'react';
@@ -10,7 +9,6 @@ import {
 } from '@apollo/client';
 import {
     Button,
-    Chip,
     createDateColumn,
     createStringColumn,
     createYesNoColumn,
@@ -20,12 +18,13 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import Chip, { ChipVariant } from '#components/Chip';
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
 import {
     BlogsQuery,
     BlogsQueryVariables,
-    BlogStatusEnum,
+    StatusEnum,
 } from '#generated/types/graphql';
 import useBooleanState from '#hooks/useBooleanState';
 import useFilterState from '#hooks/useFilterState';
@@ -35,7 +34,7 @@ import BlogModal from './BlogModal';
 
 import styles from './styles.module.css';
 
-type BlogsItem = NonNullable<NonNullable<NonNullable<BlogsQuery>['blogs']>['results']>[number] & { serialNumber: string };
+type BlogsItem = NonNullable<NonNullable<NonNullable<BlogsQuery>['blogs']>['results']>[number];
 
 const PAGE_SIZE = 10;
 
@@ -64,6 +63,7 @@ const BLOGS = gql`
                     name
                     id
                 }
+                status
                 coverImage {
                     url
                 }  
@@ -74,14 +74,19 @@ const BLOGS = gql`
 
 const statusOptions: {
     label: string;
-    status: BlogStatusEnum;
+    status: StatusEnum;
 }[] = [
     { status: 'ARCHIVED', label: 'Archived' },
     { status: 'DRAFT', label: 'Draft' },
     { status: 'PUBLISHED', label: 'Published' },
 ];
+const statusVariant: Record<string, string> = {
+    Draft: 'warning',
+    Published: 'success',
+    Archived: 'danger',
+};
 
-const statusKeySelector = (option: { status: BlogStatusEnum }) => option.status;
+const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
 
 /** @knipignore */
@@ -98,28 +103,28 @@ export function Component() {
         setFilterField,
     } = useFilterState<{
         title?: string;
-        status?: BlogStatusEnum;
+        status?: StatusEnum;
     }>({
         filter: {},
         pageSize: PAGE_SIZE,
     });
 
-    const filters = filter.status
-        ? {
-            title: filter.title ? { contains: filter.title } : undefined,
-            status: filter.status,
-        }
-        : undefined;
-
-    const variables = {
+    const variables: BlogsQueryVariables = {
         pagination: {
             limit: PAGE_SIZE,
             offset: (page - 1) * PAGE_SIZE,
         },
-        filters,
+        filters: filter.status || filter.title
+            ? {
+                title: filter.title ? { contains: filter.title } : undefined,
+                status: filter.status,
+            }
+            : undefined,
     };
+
     const {
         data: blogsResponse,
+        refetch: blogsRefetch,
     } = useQuery<BlogsQuery, BlogsQueryVariables>(
         BLOGS,
         {
@@ -127,21 +132,9 @@ export function Component() {
         },
     );
 
-    const data = useMemo(() => (
-        blogsResponse?.blogs.results?.map((user, index) => ({
-            ...user,
-            serialNumber: (page - 1) * PAGE_SIZE + index + 1,
-        })) as unknown as BlogsItem[]
-    ), [blogsResponse, page]);
-
-    const handleDelete = useCallback(() => {}, []);
+    const data = blogsResponse?.blogs.results;
 
     const columns = useMemo(() => ([
-        createStringColumn<BlogsItem, string | number>(
-            'sn',
-            'S.N',
-            (item) => String(item.serialNumber),
-        ),
         createStringColumn<BlogsItem, string | number>(
             'title',
             'Title',
@@ -157,6 +150,7 @@ export function Component() {
             'Author',
             (item) => item.author?.name,
         ),
+
         createDateColumn<BlogsItem, string | number>(
             'publishedDate',
             'Published Date',
@@ -167,34 +161,52 @@ export function Component() {
             'Featured',
             (item) => item.featured,
         ),
-        createElementColumn<BlogsItem, string, { imageUrl?: string }>(
-            'image',
-            'Image',
-            ({ imageUrl }) => (
-                imageUrl && typeof imageUrl === 'string'
-                    ? <img src={imageUrl} alt="" style={{ width: 40, height: 40, borderRadius: 4 }} />
-                    : <Chip label="No Image" variant="default" />
+        createElementColumn<BlogsItem, string, { url: string }>(
+            'coverImage',
+            'Cover Image',
+            ({ url }) => (
+                <a
+                    className={styles.actions}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {url}
+                </a>
             ),
-            (_key, item: BlogsItem) => ({ imageUrl: item.coverImage?.url }),
+            (_, item) => ({ url: item.coverImage?.url ?? '' }),
         ),
-        createElementColumn<BlogsItem, string, {
-            id: string;
-            onDelete:(
-                id: string,
-            ) => void;
-            blogId: string;
-                }>(
-                'actions',
-                'Actions',
-                BlogActions,
-                (_key, item) => ({
-                    id: item.id,
-                    blogId: item.id,
-                    onDelete: handleDelete,
-                }),
-                ),
-
-    ]), [handleDelete]);
+        createElementColumn<BlogsItem, string,
+        { status: string | undefined; variant: string }>(
+            'status',
+            'Status',
+            ({ status, variant }) => (
+                <Chip
+                    label={status}
+                    variant={variant as ChipVariant}
+                />
+            ),
+            (_key, item) => {
+                const statusLabel = statusOptions.find(
+                    (statusOption) => statusOption.status === item.status,
+                )?.label;
+                const variant = statusLabel ? statusVariant[statusLabel] : 'default';
+                return {
+                    status: statusLabel,
+                    variant,
+                };
+            },
+            { columnClassName: styles.actions },
+        ),
+        createElementColumn<BlogsItem, string, { id: string }>(
+            'actions',
+            'Actions',
+            BlogActions,
+            (_key, item) => ({
+                id: item.id,
+            }),
+        ),
+    ]), []);
 
     return (
         <Container
@@ -204,7 +216,7 @@ export function Component() {
             headingLevel={6}
             heading="Blogs Table"
             headingDescription={(
-                <div className={styles.actions}>
+                <div className={styles.filterActions}>
                     <TextInput
                         placeholder="Title"
                         onChange={setFilterField}
@@ -224,7 +236,7 @@ export function Component() {
             )}
             actions={(
                 <Button
-                    name="Add Event"
+                    name="Add Blog"
                     variant="primary"
                     onClick={setShowBlogModalTrue}
                     icons={<IoAdd />}
@@ -253,9 +265,9 @@ export function Component() {
             {showBlogModal && (
                 <BlogModal
                     onClose={setShowBlogModalFalse}
+                    onBlogAdd={blogsRefetch}
                 />
             )}
-
         </Container>
     );
 }
