@@ -17,5 +17,6 @@
 
     .alert {
         margin: var(--cms-ui-spacing-sm) 0;
+        background-color:var(--cms-ui-color-white);
     }
 }

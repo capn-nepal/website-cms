@@ -33,7 +33,6 @@ import {
     AuthorsQuery,
     AuthorsQueryVariables,
     BlogQuery,
-    BlogTypeMutationResponseType,
     StatusEnum,
     UpdateBlogInput,
     UpdateBlogMutation,
@@ -228,20 +227,23 @@ export function Component() {
         UPDATE_BLOG,
         {
             onCompleted: (response) => {
-                const archiveEvent = response.updateBlog as BlogTypeMutationResponseType;
-                const { ok, errors } = archiveEvent;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Blog successfully updated',
-                        { variant: 'success' },
-                    );
-                    navigate('/blogs');
+                const editBlogResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (editBlogResponse.updateBlog.__typename === 'BlogTypeMutationResponseType') {
+                    const { ok, errors } = editBlogResponse.updateBlog;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Blog successfully updated',
+                            { variant: 'success' },
+                        );
+                        navigate('/blogs');
+                    }
                 }
             },
             onError: () => {
@@ -364,9 +366,7 @@ export function Component() {
                     name="coverImage"
                     accept="image/*"
                     value={value.coverImage as File | undefined | null}
-                    onChange={(file, name) => {
-                        setFieldValue(file, name);
-                    }}
+                    onChange={setFieldValue}
                     error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
                     showFileName
                 >

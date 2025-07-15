@@ -265,7 +265,7 @@ export function Component() {
             {showBlogModal && (
                 <BlogModal
                     onClose={setShowBlogModalFalse}
-                    addBlogsRefetch={blogsRefetch}
+                    onBlogAdd={blogsRefetch}
                 />
             )}
         </Container>

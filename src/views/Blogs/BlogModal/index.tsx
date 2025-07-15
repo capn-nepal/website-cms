@@ -25,7 +25,6 @@ import MarkdownEditor from '#components/MarkdownEditor';
 import {
     AuthorsQuery,
     AuthorsQueryVariables,
-    BlogTypeMutationResponseType,
     CreateBlogInput,
     CreateBlogMutation,
     CreateBlogMutationVariables,
@@ -78,7 +77,7 @@ const AUTHORS_QUERY = gql`
 
 interface Props {
     onClose: () => void;
-    addBlogsRefetch:()=> void;
+    onBlogAdd:()=> void;
 }
 const featureOption = [
     { value: true, label: 'Yes' },
@@ -125,7 +124,7 @@ const defaultFormValues: PartialFormType = {};
 function BlogModal(props: Props) {
     const {
         onClose,
-        addBlogsRefetch,
+        onBlogAdd,
     } = props;
     const alert = useAlert();
 
@@ -156,21 +155,24 @@ function BlogModal(props: Props) {
         CREATE_BLOG,
         {
             onCompleted: (response) => {
-                const archiveEvent = response.createBlog as BlogTypeMutationResponseType;
-                const { ok, errors } = archiveEvent;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Blog is successfully created',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    addBlogsRefetch();
+                const { createBlog } = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (createBlog.__typename === 'BlogTypeMutationResponseType') {
+                    const { ok, errors } = createBlog;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Blog is successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onBlogAdd();
+                    }
                 }
             },
             onError: () => {
@@ -268,9 +270,7 @@ function BlogModal(props: Props) {
                 name="coverImage"
                 accept="image/*"
                 value={value.coverImage as File | undefined | null}
-                onChange={(file, name) => {
-                    setFieldValue(file, name);
-                }}
+                onChange={setFieldValue}
                 error={typeof error?.coverImage === 'string' ? error.coverImage : undefined}
                 showFileName
             >
