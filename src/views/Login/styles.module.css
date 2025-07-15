@@ -46,6 +46,7 @@
     justify-content: center;
     background-color: var(--cms-ui-color-white-card);
     padding: var(--cms-ui-spacing-sm);
+    color: var(--color-heading);
     gap: var(--cms-ui-spacing-lg);
 
     .form-content {
@@ -62,6 +63,7 @@
     .login-button {
         background-color: var(--cms-ui-color-yellow-550);
         width: 100%;
+        color: var(--color-heading);
     }
 }
 

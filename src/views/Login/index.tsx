@@ -182,7 +182,7 @@ export function Component() {
                         <div className={styles.description}>
                             Login to access the CAPN-CMS dashboard,
                             <br />
-                            Manage content, and securely work with your team
+                            Manage content, and securely work with our team
                         </div>
                     </div>
                 </div>
