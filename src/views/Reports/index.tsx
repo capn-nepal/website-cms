@@ -1,75 +1,134 @@
 import {
+    useCallback,
     useMemo,
     useState,
 } from 'react';
 import { IoAdd } from 'react-icons/io5';
 import {
+    gql,
+    useQuery,
+} from '@apollo/client';
+import {
     Button,
     createDateColumn,
     createStringColumn,
     Pager,
+    SelectInput,
     Table,
 } from '@togglecorp/toggle-ui';
 
+import Chip, { ChipVariant } from '#components/Chip';
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
+import {
+    ReportsQuery,
+    ReportsQueryVariables,
+    StatusEnum,
+} from '#generated/types/graphql';
+import useBooleanState from '#hooks/useBooleanState';
+import useFilterState from '#hooks/useFilterState';
+
+import ReportActions from './ReportActions';
+import ReportModal from './ReportsModal';
 
 import styles from './styles.module.css';
 
-type ReportsItem = {
-    title: string;
-    id: string;
-    description: string;
-    document: string;
-    published_date: string;
-    status: string;
-};
+type ReportsItem = NonNullable<ReportsQuery['reports']['results'][number]>;
 
-// FIXME: Remove after server side is ready
-const Reports: ReportsItem[] = [
+const REPORTS = gql`
+    query Reports(
+        $pagination: OffsetPaginationInput,
+        $filters: ReportFilter,
+        $order: ReportOrder,
+    ) {
+        reports(order: $order, pagination: $pagination, filters: $filters) {
+            pageInfo {
+                limit
+                offset
+            }
+            totalCount
+            results {
+                description
+                id
+                publishedDate
+                reportFile {
+                    url
+                }
+                status
+                title
+            }
+        }
+    }
+`;
 
-    {
-        title: 'API Integration Guide',
-        description: 'Detailed guide for integrating with v2 of our public API.',
-        document: 'reports/api-integration-guide.pdf',
-        published_date: '2025-04-10',
-        status: 'Published',
-        id: '1',
-    },
-    {
-        title: 'Sprint 21 Code Audit',
-        description: 'Findings from the peer code audit conducted during Sprint 21.',
-        document: 'reports/sprint21-code-audit.pdf',
-        published_date: '2025-05-01',
-        status: 'Published',
-        id: '2',
-    },
-    {
-        title: 'Database Optimization Proposal',
-        description: 'Proposed indexing and query restructuring .',
-        document: 'reports/db-optimization-proposal.pdf',
-        published_date: '2025-03-20',
-        status: 'Draft',
-        id: '3',
-    },
-    {
-        title: 'Frontend Component Refactor Plan',
-        description: 'Strategy for refactoring.',
-        document: 'reports/frontend-refactor-plan.pdf',
-        published_date: '2025-02-15',
-        status: 'Draft',
-        id: '4',
-    },
-
+const statusOptions: {
+    label: string;
+    status: StatusEnum;
+}[] = [
+    { status: 'DRAFT', label: 'Draft' },
+    { status: 'PUBLISHED', label: 'Published' },
 ];
+
 const PAGE_SIZE = 10;
 
+const statusVariant: Record<string, string> = {
+    Draft: 'default',
+    Published: 'warning',
+};
+
 const keySelector = (item: ReportsItem) => item.id;
+const statusKeySelector = (option: { status: StatusEnum }) => option.status;
+const statusLabelSelector = (option: { label: string }) => option.label;
 
 /** @knipignore */
 // eslint-disable-next-line import/prefer-default-export
 export function Component() {
     const [page, setPage] = useState(1);
+    const [
+        showReportModal, {
+            setTrue: setShowReportModalTrue,
+            setFalse: setShowReportModalFalse,
+        }] = useBooleanState(false);
+    const [selectedReport, setSelectedReport] = useState<Partial<ReportsItem> | null>(null);
+
+    const {
+        filter,
+        setFilterField,
+    } = useFilterState<{
+        isDeleted?: boolean;
+        status?: StatusEnum;
+    }>({
+        filter: {},
+        pageSize: PAGE_SIZE,
+    });
+
+    const variables = useMemo(() => {
+        const filters: ReportsQueryVariables['filters'] = {
+            status: filter.status,
+        };
+
+        return {
+            pagination: {
+                limit: PAGE_SIZE,
+                offset: (page - 1) * PAGE_SIZE,
+            },
+            filters,
+        };
+    }, [page, filter]);
+
+    const {
+        data: reportsResponse,
+        refetch: onReportUpdate,
+    } = useQuery<ReportsQuery, ReportsQueryVariables>(
+        REPORTS,
+        { variables },
+    );
+    const handleAddReport = useCallback(() => {
+        setSelectedReport(null);
+        setShowReportModalTrue();
+    }, [setShowReportModalTrue]);
+
+    const data = reportsResponse?.reports.results;
 
     const columns = useMemo(() => ([
         createStringColumn<ReportsItem, string | number>(
@@ -82,9 +141,14 @@ export function Component() {
             'Description',
             (item) => item.description,
         ),
+        createDateColumn<ReportsItem, string | number>(
+            'publishedDate',
+            'Published Date',
+            (item) => item.publishedDate,
+        ),
         createElementColumn<ReportsItem, string, { url: string }>(
-            'document',
-            'Document',
+            'reportFile',
+            'Report File',
             ({ url }) => (
                 <a
                     className={styles.actions}
@@ -95,19 +159,47 @@ export function Component() {
                     {url}
                 </a>
             ),
-            (_, item) => ({ url: item.document }),
+            (_, item) => ({ url: item.reportFile.url }),
         ),
-        createDateColumn<ReportsItem, string | number>(
-            'publishedDate',
-            'Published Date',
-            (item) => item.published_date,
+        createElementColumn<ReportsItem, string,
+        { status: string | undefined; variant: string }>(
+            'status',
+            'Status',
+            ({ status, variant }) => (
+                <Chip
+                    label={status}
+                    variant={variant as ChipVariant}
+                />
+            ),
+            (_key, item) => {
+                const statusLabel = statusOptions.find(
+                    (statusOption) => statusOption.status === item.status,
+                )?.label;
+                const variant = statusLabel ? statusVariant[statusLabel] : 'default';
+                return {
+                    status: statusLabel,
+                    variant,
+                };
+            },
+            { columnClassName: styles.actions },
         ),
-        createStringColumn<ReportsItem, string | number>(
-            'document',
-            'Document',
-            (item) => item.status,
-        ),
-    ]), []);
+        createElementColumn<ReportsItem, string, {
+            report: ReportsItem;
+            onReportEdit:(
+            ) => void;
+            onEdit: (report: ReportsItem) => void;
+                }>(
+                'actions',
+                'Actions',
+                ReportActions,
+                (_key, item) => ({
+                    report: item,
+                    onReportEdit: onReportUpdate,
+                    onEdit: setSelectedReport,
+                }),
+                ),
+    ]), [onReportUpdate]);
+
     return (
         <Container
             className={styles.container}
@@ -115,11 +207,24 @@ export function Component() {
             showHeader
             headingLevel={6}
             heading="Reports Table"
+            headingDescription={(
+                <div className={styles.filterActions}>
+                    <SelectInput
+                        placeholder="Status"
+                        name="status"
+                        options={statusOptions}
+                        keySelector={statusKeySelector}
+                        labelSelector={statusLabelSelector}
+                        value={filter.status}
+                        onChange={setFilterField}
+                    />
+                </div>
+            )}
             actions={(
                 <Button
                     name="Add Reports"
                     variant="primary"
-                    onClick={() => {}} // FIXME : Add  onChange here
+                    onClick={handleAddReport}
                     icons={<IoAdd />}
                 >
                     Add
@@ -129,7 +234,7 @@ export function Component() {
                 <Pager
                     activePage={page}
                     onActivePageChange={setPage}
-                    itemsCount={Reports.length ?? 0}
+                    itemsCount={reportsResponse?.reports.totalCount ?? 0}
                     maxItemsPerPage={PAGE_SIZE}
                     onItemsPerPageChange={setPage}
                 />
@@ -138,13 +243,20 @@ export function Component() {
             <Table
                 className={styles.table}
                 keySelector={keySelector}
-                data={Reports}
+                data={data}
                 columns={columns}
                 resizableColumn
                 fixedColumnWidth
             />
+            {showReportModal && (
+                <ReportModal
+                    onClose={setShowReportModalFalse}
+                    title={selectedReport ? 'Edit Report' : 'Add Report'}
+                    onReportUpdate={onReportUpdate}
+                />
+            )}
         </Container>
     );
 }
 
-Component.displayName = 'Reports';
+Component.displayName = 'Report';

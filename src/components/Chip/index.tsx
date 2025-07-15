@@ -18,6 +18,7 @@ const chipVariantToClassNameMap: Record<ChipVariant, string> = {
     variant?: ChipVariant;
 }
 
+/** @knipignore */
 function Chip(props: Props) {
     const {
         className,
