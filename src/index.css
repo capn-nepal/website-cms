@@ -10,7 +10,8 @@
     --base-spacing: 1rem;
     --base-radius: 0.5rem;
 
-     --color-heading: #05445e;
+    --color-heading: #05445e;
+    --color-text-on-dark: #ffffff;
   
     --cms-ui-font-size-xs: calc(var(--base-font-size) * 0.694);
     --cms-ui-font-size-sm: calc(var(--base-font-size) * 0.833);
@@ -71,7 +72,8 @@
     --cms-ui-color-blue-400: #6E9AC6;
     --cms-ui-color-blue-500: #4B7EB0;
     --cms-ui-color-blue-600: #2A6197;
-    --cms-ui-color-blue-700: #114A84;
+
+    --cms-ui-color-blue-700: #05445e;;
 
     --cms-ui-color-yellow-50: #FFF3DE;
     --cms-ui-color-yellow-100: #FFEECB;

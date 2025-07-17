@@ -36,6 +36,7 @@ import {
     LoginMutationVariables,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import { transformToFormError } from '#utils/errorTransform';
 
 import styles from './styles.module.css';
 
@@ -125,6 +126,7 @@ export function Component() {
                     );
                     navigate('/');
                 } else {
+                    setError(transformToFormError(response.errors));
                     const errorMessages = response.errors
                         ?.map((err: { messages: string; }) => err.messages)
                         .filter(isDefined)
