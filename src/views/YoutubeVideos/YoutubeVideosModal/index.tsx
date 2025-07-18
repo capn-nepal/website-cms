@@ -27,7 +27,6 @@ import {
     UpdateYoutubeVideosMutation,
     UpdateYoutubeVideosMutationVariables,
     YoutubeVideoInput,
-    YouTubeVideoTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 
@@ -146,22 +145,24 @@ function YoutubeVideosModal(props: Props) {
         ADD_YOUTUBE_VIDEOS,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const createYoutubeVideos = response.addYoutubeVideo as YouTubeVideoTypeMutationResponseType;
-                const { ok, errors } = createYoutubeVideos;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Podcast season successfully created',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    onYoutubeVideoUpdate();
+                const createYoutubeVideosResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (createYoutubeVideosResponse.addYoutubeVideo.__typename === 'YouTubeVideoTypeMutationResponseType') {
+                    const { ok, errors } = createYoutubeVideosResponse.addYoutubeVideo;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Podcast season successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onYoutubeVideoUpdate();
+                    }
                 }
             },
             onError: () => {
@@ -180,22 +181,25 @@ function YoutubeVideosModal(props: Props) {
         UPDATE_YOUTUBE_VIDEOS,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const updateYoutubeVideo = response.updateYoutubeVideo as YouTubeVideoTypeMutationResponseType;
-                const { ok, errors } = updateYoutubeVideo;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        ' Youtube Video successfully Updated',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    onYoutubeVideoUpdate();
+                const updateYoutubeVideosResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (updateYoutubeVideosResponse.updateYoutubeVideo.__typename === 'YouTubeVideoTypeMutationResponseType') {
+                    const { ok, errors } = updateYoutubeVideosResponse.updateYoutubeVideo;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            ' Youtube Video successfully Updated',
+                            { variant: 'success' },
+                        );
+                        onClose();
+
+                        onYoutubeVideoUpdate();
+                    }
                 }
             },
             onError: () => {
