@@ -13,7 +13,6 @@ import {
     ArchiveJobVacancyMutation,
     ArchiveJobVacancyMutationVariables,
     JobVacanciesQuery,
-    JobVacancyTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
@@ -27,7 +26,7 @@ type JobsItem = NonNullable<JobVacanciesQuery['jobVacancies']['results'][number]
 interface Props {
     jobVacancy:JobsItem
     onEdit?: (event: Props['jobVacancy']) => void;
-    jobVacancyRefetch: () => void;
+    onJobVacancyUpdate: () => void;
 }
 
 const ARCHIVE_JOB_VACANCY = gql`
@@ -57,7 +56,7 @@ function JobVacancyActions(props: Props) {
     const {
         jobVacancy,
         onEdit,
-        jobVacancyRefetch,
+        onJobVacancyUpdate,
     } = props;
     const alert = useAlert();
     const [
@@ -73,21 +72,23 @@ function JobVacancyActions(props: Props) {
         ARCHIVE_JOB_VACANCY,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const archiveVacancy = response.archiveJobVacancy as JobVacancyTypeMutationResponseType;
-                const { ok, errors } = archiveVacancy;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter(Boolean)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Successfully archived the Job Vacancy',
-                        { variant: 'success' },
-                    );
-                    jobVacancyRefetch();
+                const archiveJobVacancyResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (archiveJobVacancyResponse.archiveJobVacancy.__typename === 'JobVacancyTypeMutationResponseType') {
+                    const { ok, errors } = archiveJobVacancyResponse.archiveJobVacancy;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter(Boolean)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Successfully archived the Job Vacancy',
+                            { variant: 'success' },
+                        );
+                        onJobVacancyUpdate();
+                    }
                 }
             },
             onError: () => {
@@ -143,7 +144,7 @@ function JobVacancyActions(props: Props) {
                     onClose={setShowEditJobVacancyModalFalse}
                     title="Edit Job Vacancy"
                     initialValues={jobVacancy}
-                    jobVacancyRefetch={jobVacancyRefetch}
+                    onJobVacancyUpdate={onJobVacancyUpdate}
                 />
             )}
         </div>

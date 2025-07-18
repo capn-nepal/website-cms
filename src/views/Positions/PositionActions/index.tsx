@@ -14,7 +14,6 @@ import {
     ArchivePositionMutationVariables,
     EmploymentTypeEnum,
     PositionsQuery,
-    PositionTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
@@ -75,21 +74,23 @@ function PositionActions(props: Props) {
         ARCHIVE_POSITION,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const archivePosition = response.archivePosition as PositionTypeMutationResponseType;
-                const { ok, errors } = archivePosition;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Successfully archived the Position',
-                        { variant: 'success' },
-                    );
-                    positionRefetch();
+                const archivePositionResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (archivePositionResponse.archivePosition.__typename === 'PositionTypeMutationResponseType') {
+                    const { ok, errors } = archivePositionResponse.archivePosition;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Successfully archived the Position',
+                            { variant: 'success' },
+                        );
+                        positionRefetch();
+                    }
                 }
             },
             onError: () => {
@@ -143,7 +144,7 @@ function PositionActions(props: Props) {
                         ...positions,
                         employmentType: positions.employmentType as EmploymentTypeEnum,
                     } : undefined}
-                    refetchPosition={positionRefetch}
+                    onPositionUpdate={positionRefetch}
                 />
             )}
         </div>

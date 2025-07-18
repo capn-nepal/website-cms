@@ -23,7 +23,6 @@ import {
     CreatePositionMutation,
     CreatePositionMutationVariables,
     EmploymentTypeEnum,
-    PositionTypeMutationResponseType,
     UpdatePositionInput,
     UpdatePositionMutation,
     UpdatePositionMutationVariables,
@@ -95,7 +94,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdatePositionInput & { id: string }>;
-    refetchPosition: ()=> void;
+    onPositionUpdate: ()=> void;
 }
 
 type PartialFormType = Partial<CreatePositionInput>;
@@ -129,7 +128,7 @@ function PositionModal(props: Props) {
         title,
         onClose,
         initialValues,
-        refetchPosition,
+        onPositionUpdate,
     } = props;
     const alert = useAlert();
 
@@ -155,21 +154,24 @@ function PositionModal(props: Props) {
         CREATE_POSITION,
         {
             onCompleted: (response) => {
-                const addPosition = response.createPosition as PositionTypeMutationResponseType;
-                const { ok, errors } = addPosition;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        ' New Position successfully created',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    refetchPosition();
+                const createPositionResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (createPositionResponse.createPosition.__typename === 'PositionTypeMutationResponseType') {
+                    const { ok, errors } = createPositionResponse.createPosition;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            ' New Position successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onPositionUpdate();
+                    }
                 }
             },
             onError: () => {
@@ -188,21 +190,24 @@ function PositionModal(props: Props) {
         UPDATE_POSITION,
         {
             onCompleted: (response) => {
-                const updatePosition = response.updatePosition as PositionTypeMutationResponseType;
-                const { ok, errors } = updatePosition;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        ' Position successfully updated',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    refetchPosition();
+                const updatePositionResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (updatePositionResponse.updatePosition.__typename === 'PositionTypeMutationResponseType') {
+                    const { ok, errors } = updatePositionResponse.updatePosition;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            ' Position successfully updated',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onPositionUpdate();
+                    }
                 }
             },
             onError: () => {

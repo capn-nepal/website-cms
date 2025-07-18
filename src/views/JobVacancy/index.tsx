@@ -147,14 +147,14 @@ export function Component() {
             jobVacancy: JobsItem;
             onEdit:(
                 jobs: JobsItem) => void;
-            jobVacancyRefetch: () => void;
+            onJobVacancyUpdate: () => void;
                 }>(
                 'actions',
                 'Actions',
                 JobVacancyActions,
                 (_key, item) => ({
                     jobVacancy: item,
-                    jobVacancyRefetch,
+                    onJobVacancyUpdate: jobVacancyRefetch,
                     onEdit: setSelectedJob,
                 }),
                 ),
@@ -183,7 +183,7 @@ export function Component() {
             )}
             actions={(
                 <Button
-                    name="Add Event"
+                    name="Add"
                     variant="primary"
                     onClick={handleAddVacancy}
                     icons={<IoAdd />}
@@ -214,7 +214,7 @@ export function Component() {
                     onClose={setShowJobVacancyModalFalse}
                     title={selectedJob ? 'Edit Job' : 'Add Job'}
                     initialValues={selectedJob}
-                    jobVacancyRefetch={jobVacancyRefetch}
+                    onJobVacancyUpdate={jobVacancyRefetch}
                 />
             )}
         </Container>

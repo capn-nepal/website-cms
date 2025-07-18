@@ -24,7 +24,6 @@ import {
     CreateJobVacancyInput,
     CreateJobVacancyMutation,
     CreateJobVacancyMutationVariables,
-    JobVacancyTypeMutationResponseType,
     PositionsQuery,
     PositionsQueryVariables,
     UpdateJobVacancyInput,
@@ -96,7 +95,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdateJobVacancyInput & { id: string }>;
-    jobVacancyRefetch: () => void;
+    onJobVacancyUpdate: () => void;
 }
 
 const positionKeySelector = (option: { value: string; label: string }) => option.value;
@@ -131,7 +130,7 @@ function JobVacanciesModal(props: Props) {
         title,
         onClose,
         initialValues,
-        jobVacancyRefetch,
+        onJobVacancyUpdate,
     } = props;
     const alert = useAlert();
 
@@ -168,21 +167,24 @@ function JobVacanciesModal(props: Props) {
         CREATE_JOB_VACANCY,
         {
             onCompleted: (response) => {
-                const addVacancy = response.createJobVacancy as JobVacancyTypeMutationResponseType;
-                const { ok, errors } = addVacancy;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'New Job Vacancy successfully created',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    jobVacancyRefetch();
+                const addJobVacancyResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (addJobVacancyResponse.createJobVacancy.__typename === 'JobVacancyTypeMutationResponseType') {
+                    const { ok, errors } = addJobVacancyResponse.createJobVacancy;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'New Job Vacancy successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onJobVacancyUpdate();
+                    }
                 }
             },
             onError: () => {
@@ -201,22 +203,24 @@ function JobVacanciesModal(props: Props) {
         UPDATE_JOB_VACANCY,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const updateJobVacancy = response.updateJobVacancy as JobVacancyTypeMutationResponseType;
-                const { ok, errors } = updateJobVacancy;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Job Vacancy successfully updated',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    jobVacancyRefetch();
+                const updateJobVacancyResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (updateJobVacancyResponse.updateJobVacancy.__typename === 'JobVacancyTypeMutationResponseType') {
+                    const { ok, errors } = updateJobVacancyResponse.updateJobVacancy;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Job Vacancy successfully updated',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onJobVacancyUpdate();
+                    }
                 }
             },
             onError: () => {
