@@ -238,7 +238,7 @@ export function Component() {
                 <YoutubeVideosModal
                     onClose={setShowYoutubeVideoModalFalse}
                     title="Add Youtube Video"
-                    youtubeVideoRefetch={youtubeVideosRefetch}
+                    onYoutubeVideoUpdate={youtubeVideosRefetch}
                 />
             )}
 

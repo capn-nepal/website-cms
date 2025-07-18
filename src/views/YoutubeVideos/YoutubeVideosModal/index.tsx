@@ -91,7 +91,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdateYoutubeVideoInput & { id: string }>;
-    youtubeVideoRefetch: ()=>void;
+    onYoutubeVideoUpdate: ()=>void;
 }
 
 type PartialFormType = Partial<YoutubeVideoInput>;
@@ -118,7 +118,7 @@ function YoutubeVideosModal(props: Props) {
         onClose,
         title,
         initialValues,
-        youtubeVideoRefetch,
+        onYoutubeVideoUpdate,
     } = props;
     const alert = useAlert();
     const [filePreview, setFilePreview] = useState<string | undefined>(undefined);
@@ -161,7 +161,7 @@ function YoutubeVideosModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
-                    youtubeVideoRefetch();
+                    onYoutubeVideoUpdate();
                 }
             },
             onError: () => {
@@ -195,7 +195,7 @@ function YoutubeVideosModal(props: Props) {
                         { variant: 'success' },
                     );
                     onClose();
-                    youtubeVideoRefetch();
+                    onYoutubeVideoUpdate();
                 }
             },
             onError: () => {

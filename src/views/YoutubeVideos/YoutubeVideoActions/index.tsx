@@ -13,7 +13,6 @@ import {
     ArchiveYoutubeVideoMutation,
     ArchiveYoutubeVideoMutationVariables,
     YoutubeVideosQuery,
-    YouTubeVideoTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
@@ -27,7 +26,7 @@ type YoutubeVideosItem = NonNullable<NonNullable<NonNullable<YoutubeVideosQuery>
 interface Props {
     youtubeVideo: YoutubeVideosItem
     onEdit?: (event: Props['youtubeVideo']) => void;
-    youtubeVideoRefetch: () => void
+    onYoutubeVideoUpdate: () => void
 }
 
 const ARCHIVE_YOUTUBE_VIDEO = gql`
@@ -61,7 +60,7 @@ function YoutubeVideoActions(props: Props) {
     const {
         youtubeVideo,
         onEdit,
-        youtubeVideoRefetch,
+        onYoutubeVideoUpdate,
     } = props;
     const alert = useAlert();
 
@@ -77,22 +76,24 @@ function YoutubeVideoActions(props: Props) {
         ARCHIVE_YOUTUBE_VIDEO,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const archiveYoutubeVideo = response.archiveYoutubeVideo as YouTubeVideoTypeMutationResponseType;
-                const { ok, errors } = archiveYoutubeVideo;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Successfully archived the Youtube Video',
-                        { variant: 'success' },
-                    );
+                const archiveYoutubeVideosResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (archiveYoutubeVideosResponse.archiveYoutubeVideo.__typename === 'YouTubeVideoTypeMutationResponseType') {
+                    const { ok, errors } = archiveYoutubeVideosResponse.archiveYoutubeVideo;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Successfully archived the Youtube Video',
+                            { variant: 'success' },
+                        );
+                    }
+                    onYoutubeVideoUpdate();
                 }
-                youtubeVideoRefetch();
             },
             onError: () => {
                 alert.show(
@@ -147,7 +148,7 @@ function YoutubeVideoActions(props: Props) {
                     onClose={setShowEditYoutubeVideosModalFalse}
                     title="Edit Youtube Video"
                     initialValues={youtubeVideo}
-                    youtubeVideoRefetch={youtubeVideoRefetch}
+                    onYoutubeVideoUpdate={onYoutubeVideoUpdate}
                 />
             )}
         </div>
