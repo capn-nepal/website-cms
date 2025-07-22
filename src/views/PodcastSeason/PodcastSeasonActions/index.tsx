@@ -13,7 +13,6 @@ import {
     ArchivePodcastSeasonMutation,
     ArchivePodcastSeasonMutationVariables,
     PodcastSeasonsQuery,
-    PodcastSeasonTypeMutationResponseType,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
 import useBooleanState from '#hooks/useBooleanState';
@@ -27,7 +26,7 @@ type PodcastSeasonsItem = NonNullable<PodcastSeasonsQuery['podcastSeasons']['res
 interface Props {
     podcastSeason:PodcastSeasonsItem
     onEdit: (event: Props['podcastSeason']) => void;
-    podcastSeasonRefetch: () => void;
+    onPodcastSeasonUpdate: () => void;
 }
 
 const ARCHIVE_PODCAST_SEASON = gql`
@@ -57,7 +56,7 @@ function PodcastSeasonsActions(props:Props) {
     const {
         podcastSeason,
         onEdit,
-        podcastSeasonRefetch,
+        onPodcastSeasonUpdate,
     } = props;
     const alert = useAlert();
     const [
@@ -72,22 +71,25 @@ function PodcastSeasonsActions(props:Props) {
         ARCHIVE_PODCAST_SEASON,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const archiveEvent = response.archivePodcastSeason as PodcastSeasonTypeMutationResponseType;
-                const { ok, errors } = archiveEvent;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Successfully archived the podcast season',
-                        { variant: 'success' },
-                    );
+                const archivePodcastSeasonResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (archivePodcastSeasonResponse.archivePodcastSeason.__typename === 'PodcastSeasonTypeMutationResponseType') {
+                    const { ok, errors } = archivePodcastSeasonResponse.archivePodcastSeason;
+
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Successfully archived the podcast season',
+                            { variant: 'success' },
+                        );
+                    }
+                    onPodcastSeasonUpdate();
                 }
-                podcastSeasonRefetch();
             },
             onError: () => {
                 alert.show(
@@ -132,7 +134,7 @@ function PodcastSeasonsActions(props:Props) {
                     onClose={setShowEditPodcastSeasonModalFalse}
                     title="Edit Podcast season"
                     initialValues={podcastSeason}
-                    podcastSeasonRefetch={podcastSeasonRefetch}
+                    onPodcastSeasonUpdate={onPodcastSeasonUpdate}
                 />
             )}
         </div>

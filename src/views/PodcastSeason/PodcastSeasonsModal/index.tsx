@@ -22,7 +22,6 @@ import {
     CreatePodcastSeasonInput,
     CreatePodcastSeasonMutation,
     CreatePodcastSeasonMutationVariables,
-    PodcastSeasonTypeMutationResponseType,
     UpdatePodcastSeasonInput,
     UpdatePodcastSeasonMutation,
     UpdatePodcastSeasonMutationVariables,
@@ -81,7 +80,7 @@ interface Props {
     title: string;
     onClose: () => void;
     initialValues?: Partial<UpdatePodcastSeasonInput & { id: string }>;
-    podcastSeasonRefetch: ()=> void;
+    onPodcastSeasonUpdate: ()=> void;
 }
 
 type PartialFormType = Partial<CreatePodcastSeasonInput>;
@@ -107,7 +106,7 @@ function PodcastSeasonModal(props: Props) {
         onClose,
         title,
         initialValues,
-        podcastSeasonRefetch,
+        onPodcastSeasonUpdate,
     } = props;
     const alert = useAlert();
     const defaultFormValues: Partial<CreatePodcastSeasonInput> = {
@@ -132,22 +131,24 @@ function PodcastSeasonModal(props: Props) {
         CREATE_PODCAST_SEASON,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const createSeasons = response.createPodcastSeason as PodcastSeasonTypeMutationResponseType;
-                const { ok, errors } = createSeasons;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Podcast season successfully created',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    podcastSeasonRefetch();
+                const createPodcastSeasonResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (createPodcastSeasonResponse.createPodcastSeason.__typename === 'PodcastSeasonTypeMutationResponseType') {
+                    const { ok, errors } = createPodcastSeasonResponse.createPodcastSeason;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Podcast season successfully created',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onPodcastSeasonUpdate();
+                    }
                 }
             },
             onError: () => {
@@ -166,22 +167,24 @@ function PodcastSeasonModal(props: Props) {
         UPDATE_PODCAST_SEASON,
         {
             onCompleted: (response) => {
-                // eslint-disable-next-line max-len
-                const createSeasons = response.updatePodcastSeason as PodcastSeasonTypeMutationResponseType;
-                const { ok, errors } = createSeasons;
-                if (errors) {
-                    const errorMessages = errors
-                        ?.map((message: { messages: string }) => message.messages)
-                        .filter((msg: string) => msg)
-                        .join(', ');
-                    alert.show(errorMessages);
-                } else if (ok) {
-                    alert.show(
-                        'Podcast season successfully Updated',
-                        { variant: 'success' },
-                    );
-                    onClose();
-                    podcastSeasonRefetch();
+                const updatePodcastSeasonResponse = response;
+                // eslint-disable-next-line no-underscore-dangle
+                if (updatePodcastSeasonResponse.updatePodcastSeason.__typename === 'PodcastSeasonTypeMutationResponseType') {
+                    const { ok, errors } = updatePodcastSeasonResponse.updatePodcastSeason;
+                    if (errors) {
+                        const errorMessages = errors
+                            ?.map((message: { messages: string }) => message.messages)
+                            .filter((msg: string) => msg)
+                            .join(', ');
+                        alert.show(errorMessages);
+                    } else if (ok) {
+                        alert.show(
+                            'Podcast season successfully Updated',
+                            { variant: 'success' },
+                        );
+                        onClose();
+                        onPodcastSeasonUpdate();
+                    }
                 }
             },
             onError: () => {

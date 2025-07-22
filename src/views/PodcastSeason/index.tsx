@@ -100,7 +100,7 @@ export function Component() {
     };
     const {
         data: podcastSeasonsResponse,
-        refetch: podcastSeasonRefetch,
+        refetch: podcastSeasonUpdate,
     } = useQuery<PodcastSeasonsQuery, PodcastSeasonsQueryVariables>(
         PODCAST_SEASONS,
         { variables },
@@ -144,7 +144,7 @@ export function Component() {
         ),
         createElementColumn<PodcastSeasonsItem, string, {
             podcastSeason: PodcastSeasonsItem;
-            podcastSeasonRefetch:(
+            onPodcastSeasonUpdate:(
             ) => void;
             onEdit: (report:PodcastSeasonsItem) => void;
                 }>(
@@ -153,14 +153,14 @@ export function Component() {
                 PodcastSeasonsActions,
                 (_key, item) => ({
                     podcastSeason: item,
-                    podcastSeasonRefetch,
+                    onPodcastSeasonUpdate: podcastSeasonUpdate,
                     onEdit: (report: PodcastSeasonsItem) => {
                         setSelectedSeason(report);
                         setShowPodcastSeasonModalTrue();
                     },
                 }),
                 ),
-    ]), [podcastSeasonRefetch, setShowPodcastSeasonModalTrue]);
+    ]), [podcastSeasonUpdate, setShowPodcastSeasonModalTrue]);
 
     const data = podcastSeasonsResponse?.podcastSeasons.results;
     return (
@@ -216,7 +216,7 @@ export function Component() {
                     onClose={setShowPodcastSeasonModalFalse}
                     title={selectedSeason ? 'Edit Podcast season' : 'Add Podcast season'}
                     initialValues={selectedSeason || undefined}
-                    podcastSeasonRefetch={podcastSeasonRefetch}
+                    onPodcastSeasonUpdate={podcastSeasonUpdate}
                 />
             )}
         </Container>
