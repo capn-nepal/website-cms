@@ -1,6 +1,0 @@
-dependencies:
-- name: web-app-serve-helm
-  repository: oci://ghcr.io/toggle-corp
-  version: 0.1.1
-digest: sha256:39eb9c6ebf861a2d5fc8a875186d8cc6af53c9feb4f97687415c5075523dbfc4
-generated: "2026-07-16T21:32:15.327013693+05:45"
