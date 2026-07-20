@@ -1,0 +1,7 @@
+.podcast-seasons-modal {
+    .footer-content{
+        display: flex;
+        justify-content: flex-end;
+        gap: var(--cms-ui-spacing-md);
+    }
+}

@@ -107,17 +107,29 @@ const reports = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
-
-const podcast = customWrapRoute({
+const podcastSeasons = customWrapRoute({
     parent: homeLayout,
-    path: 'podcast',
+    path: 'podcast-seasons',
     component: {
-        render: () => import('#views/Podcast'),
+        render: () => import('#views/PodcastSeason'),
         props: {},
     },
     wrapperComponent: Auth,
     context: {
-        title: 'Podcast',
+        title: 'Podcast Seasons',
+        visibility: 'is-authenticated',
+    },
+});
+const podcastEpisode = customWrapRoute({
+    parent: homeLayout,
+    path: 'podcast-episode',
+    component: {
+        render: () => import('#views/PodcastEpisode'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Podcast Episode',
         visibility: 'is-authenticated',
     },
 });
@@ -299,7 +311,8 @@ const wrappedRoutes = {
     artWork,
     gallery,
     reports,
-    podcast,
+    podcastSeasons,
+    podcastEpisode,
     youtubeVideos,
     // userActivation,
     // editProfile,
