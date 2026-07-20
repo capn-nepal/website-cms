@@ -25,7 +25,7 @@ import { createElementColumn } from '#components/CreateElementColumn';
 import {
     BlogsQuery,
     BlogsQueryVariables,
-    BlogStatusEnum,
+    StatusEnum,
 } from '#generated/types/graphql';
 import useBooleanState from '#hooks/useBooleanState';
 import useFilterState from '#hooks/useFilterState';
@@ -74,14 +74,14 @@ const BLOGS = gql`
 
 const statusOptions: {
     label: string;
-    status: BlogStatusEnum;
+    status: StatusEnum;
 }[] = [
     { status: 'ARCHIVED', label: 'Archived' },
     { status: 'DRAFT', label: 'Draft' },
     { status: 'PUBLISHED', label: 'Published' },
 ];
 
-const statusKeySelector = (option: { status: BlogStatusEnum }) => option.status;
+const statusKeySelector = (option: { status: StatusEnum }) => option.status;
 const statusLabelSelector = (option: { label: string }) => option.label;
 
 /** @knipignore */
@@ -98,7 +98,7 @@ export function Component() {
         setFilterField,
     } = useFilterState<{
         title?: string;
-        status?: BlogStatusEnum;
+        status?: StatusEnum;
     }>({
         filter: {},
         pageSize: PAGE_SIZE,

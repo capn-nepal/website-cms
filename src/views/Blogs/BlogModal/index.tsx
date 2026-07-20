@@ -76,9 +76,7 @@ function BlogModal(props: Props) {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
-    const handleSubmitSuccess = useCallback((formValues: PartialFormType) => {
-        console.info('Form submitted:', formValues);
-
+    const handleSubmitSuccess = useCallback(() => {
         if (onSuccess) {
             onSuccess();
         }

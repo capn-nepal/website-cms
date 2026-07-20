@@ -162,7 +162,6 @@ const events = customWrapRoute({
         visibility: 'is-authenticated',
     },
 });
-
 /*
 const userManagement = customWrapRoute({
     parent: homeLayout,
@@ -301,6 +300,7 @@ const wrappedRoutes = {
     reports,
     podcast,
     youtubeVideos,
+
     // userActivation,
     // editProfile,
     // forgotPassword,
