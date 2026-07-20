@@ -19,49 +19,59 @@ import {
 import Container from '#components/Container';
 import { createElementColumn } from '#components/CreateElementColumn';
 import {
-    GalleriesQuery,
-    GalleriesQueryVariables,
+    GalleryItemsQuery,
+    GalleryItemsQueryVariables,
 } from '#generated/types/graphql';
 import useBooleanState from '#hooks/useBooleanState';
 import useFilterState from '#hooks/useFilterState';
 
-import GalleryActions from './GalleryActions';
-import GalleryModal from './GalleryModal';
+import GalleryItemActions from './GalleryItemActions';
+import GalleryItemModal from './GalleryItemModal';
 
 import styles from './styles.module.css';
 
-type GalleryItem = NonNullable<GalleriesQuery['galleries']['results'][number]>;
+type GalleryItem = NonNullable<GalleryItemsQuery['galleryItems']['results'][number]>;
 
 const PAGE_SIZE = 10;
 
 const keySelector = (item: GalleryItem) => item.id;
 
 const isArchivedOptions = [
-    { isArchived: true, label: 'Yes' },
-    { isArchived: false, label: 'No' },
+    { status: true, label: 'Yes' },
+    { status: false, label: 'No' },
 ];
 
-const statusKeySelector = (option: {
-    isArchived: boolean; label: string }) => String(option.isArchived);
-const statusLabelSelector = (option: {
-     isArchived: boolean; label: string }) => String(option.label);
+const statusKeySelector = (option: { status: boolean }) => String(option.status);
+const statusLabelSelector = (option: { status: boolean; label: string }) => option.label;
 
-const GALLERY = gql`
-    query  galleries(
+const GALLERY_ITEMS = gql`
+    query GalleryItems(
         $pagination: OffsetPaginationInput,
-        $filters: GalleryFilter,
-        $order: GalleryOrder
+        $filters: GalleryItemFilter,
+        $order: GalleryItemOrder
     ) {
-        galleries(order: $order, pagination: $pagination, filters: $filters) {
+        galleryItems(
+            order: $order,
+            pagination: $pagination,
+            filters: $filters
+            ) {
             pageInfo {
                 limit
                 offset
             }
             results {
-                description
+                caption
+                gallery {
+                    description
+                    id
+                    isArchived
+                    name
+                }
                 id
+                image{
+                    url
+                }
                 isArchived
-                name
             }
             totalCount
         }
@@ -74,16 +84,19 @@ export function Component() {
     const [page, setPage] = useState(1);
     const [
         showGalleryItemModal, {
-            setTrue: setShowGalleryModalTrue,
-            setFalse: setShowGalleryModalFalse,
+            setTrue: setShowGalleryItemModalTrue,
+            setFalse: setShowGalleryItemModalFalse,
         }] = useBooleanState(false);
-    const [selectedGallery, setSelectedGallery] = useState<Partial<GalleryItem> | null>(null);
+    const [
+        selectedGalleryItem,
+        setSelectedGalleryItem,
+    ] = useState<Partial<GalleryItem> | null>(null);
 
     const {
         filter,
         setFilterField,
     } = useFilterState<{
-        isArchived?: boolean;
+       isArchived?: boolean;
     }>({
         filter: {},
         pageSize: PAGE_SIZE,
@@ -99,62 +112,79 @@ export function Component() {
         },
     };
     const {
-        refetch: galleryRefetch,
-        data: galleryResponse,
-    } = useQuery<GalleriesQuery, GalleriesQueryVariables>(
-        GALLERY,
+        refetch: galleryItemRefetch,
+        data: galleryItemsResponse,
+    } = useQuery<GalleryItemsQuery, GalleryItemsQueryVariables>(
+        GALLERY_ITEMS,
         { variables },
     );
     const onChange = useCallback(
         (newValue: string | undefined) => {
-            let isArchived;
+            let isDeleted;
             if (newValue === 'true') {
-                isArchived = true;
+                isDeleted = true;
             } else if (newValue === 'false') {
-                isArchived = false;
+                isDeleted = false;
             } else {
-                isArchived = undefined;
+                isDeleted = undefined;
             }
 
-            setFilterField(isArchived, 'isArchived');
+            setFilterField(isDeleted, 'isArchived');
         },
         [setFilterField],
     );
-    const handleAddGallery = useCallback(() => {
-        setSelectedGallery(null);
-        setShowGalleryModalTrue();
-    }, [setShowGalleryModalTrue]);
-    const data = galleryResponse?.galleries.results;
+    const handleAddGalleryItem = useCallback(() => {
+        setSelectedGalleryItem(null);
+        setShowGalleryItemModalTrue();
+    }, [setShowGalleryItemModalTrue]);
+
+    const data = galleryItemsResponse?.galleryItems.results;
 
     const columns = useMemo(() => [
         createStringColumn<GalleryItem, string | number>(
-            'name',
-            'Name',
-            (item) => (item.name),
+            'caption',
+            'Caption',
+            (item) => (item.caption),
+        ),
+        createElementColumn<GalleryItem, string, { url: string }>(
+            'image',
+            'Image',
+            ({ url }) => (
+                <a
+                    className={styles.actions}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {url}
+                </a>
+            ),
+            (_, item) => ({ url: item.image.url }),
         ),
         createStringColumn<GalleryItem, string | number>(
-            'description',
-            'Description',
-            (item) => (item.description),
+            'gallery',
+            'Gallery',
+            (item) => (item.gallery.name),
         ),
         createElementColumn<
-        GalleryItem,
-        string,
-        {
-            galleryItem: GalleryItem;
-            refetchGallery:(
-            ) => void;
-                }
-                >(
-                'actions',
-                'Actions',
-                GalleryActions,
-                (_key, item) => ({
-                    galleryItem: item,
-                    refetchGallery: galleryRefetch,
-                }),
-                ),
-    ], [galleryRefetch]);
+            GalleryItem,
+            string,
+            {
+                galleryItem: GalleryItem;
+                refetchGalleryItem:(
+                ) =>void;
+
+                    }
+                    >(
+                    'actions',
+                    'Actions',
+                    GalleryItemActions,
+                    (_key, item) => ({
+                        galleryItem: item,
+                        refetchGalleryItem: galleryItemRefetch,
+                    }),
+                    ),
+    ], [galleryItemRefetch]);
 
     return (
         <Container
@@ -171,7 +201,8 @@ export function Component() {
                         options={isArchivedOptions}
                         keySelector={statusKeySelector}
                         labelSelector={statusLabelSelector}
-                        value={filter.isArchived !== undefined ? String(filter.isArchived) : null}
+                        value={filter.isArchived !== undefined
+                            ? String(filter.isArchived) : undefined}
                         onChange={onChange}
                     />
                 </div>
@@ -180,7 +211,7 @@ export function Component() {
                 <Button
                     name="Add"
                     variant="primary"
-                    onClick={handleAddGallery}
+                    onClick={handleAddGalleryItem}
                     icons={<IoAdd />}
                 >
                     Add
@@ -190,7 +221,7 @@ export function Component() {
                 <Pager
                     activePage={page}
                     onActivePageChange={setPage}
-                    itemsCount={galleryResponse?.galleries.totalCount ?? 0}
+                    itemsCount={galleryItemsResponse?.galleryItems.totalCount ?? 0}
                     maxItemsPerPage={PAGE_SIZE}
                     onItemsPerPageChange={setPage}
                 />
@@ -205,14 +236,14 @@ export function Component() {
                 fixedColumnWidth
             />
             {showGalleryItemModal && (
-                <GalleryModal
-                    onClose={setShowGalleryModalFalse}
-                    galleryRefetch={galleryRefetch}
-                    title={selectedGallery ? 'Edit Gallery' : 'Add Gallery'}
+                <GalleryItemModal
+                    onClose={setShowGalleryItemModalFalse}
+                    title={selectedGalleryItem ? 'Edit Gallery Item' : 'Add Gallery Item'}
+                    galleryItemRefetch={galleryItemRefetch}
                 />
             )}
         </Container>
     );
 }
 
-Component.displayName = 'Gallery';
+Component.displayName = 'GalleryItems';

@@ -1,0 +1,6 @@
+.gallery-actions{
+    display :flex;
+    flex-direction:row;
+    gap: var(--cms-ui-spacing-sm);
+    padding: var(--cms-ui-spacing-xs) var(--cms-ui-spacing-xs) var(--cms-ui-spacing-xs) var(--cms-ui-spacing-md);
+}

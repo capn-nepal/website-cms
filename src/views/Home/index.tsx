@@ -55,6 +55,12 @@ export function Component() {
                             Gallery
                         </NavigationTab>
                         <NavigationTab
+                            to="galleryItems"
+                            icon={<IoImages />}
+                        >
+                            Gallery Items
+                        </NavigationTab>
+                        <NavigationTab
                             to="podcast"
                             icon={<MdOutlineOndemandVideo />}
                         >
