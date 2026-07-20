@@ -1,6 +1,7 @@
 import {
     IoGrid,
     IoImages,
+    IoPeopleCircle,
     IoPerson,
 } from 'react-icons/io5';
 import {
@@ -71,6 +72,12 @@ export function Component() {
                             icon={<MdSmartDisplay />}
                         >
                             Youtube Videos
+                        </NavigationTab>
+                        <NavigationTab
+                            to="teams"
+                            icon={<IoPeopleCircle />}
+                        >
+                            teams
                         </NavigationTab>
                     </>
                 )}
