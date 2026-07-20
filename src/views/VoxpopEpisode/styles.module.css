@@ -1,0 +1,23 @@
+.container {
+    padding: var(--cms-ui-spacing-xl);
+
+    .content {
+        .table {
+            background-color: var(--cms-ui-color-white-card);
+            width: 100%!important;
+        }
+    }
+    .filter-actions{
+        display:flex;
+        gap: var(--cms-ui-spacing-md);
+    }
+}
+.actions{
+    text-decoration: none;
+    color: var(--cms-ui-primary-text-color);
+    &:hover {
+        text-decoration: underline;
+        color: var(--cms-ui-color-blue-500);
+        background-color: var(--cms-ui-color-background);
+    }
+}

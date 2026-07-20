@@ -163,6 +163,33 @@ const events = customWrapRoute({
     },
 });
 
+const voxpopSeasons = customWrapRoute({
+    parent: homeLayout,
+    path: 'voxpopSeason',
+    component: {
+        render: () => import('#views/VoxpopSeasons'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Voxpop Seasons',
+        visibility: 'is-authenticated',
+    },
+});
+const voxpopEpisodes = customWrapRoute({
+    parent: homeLayout,
+    path: 'voxpopEpisode',
+    component: {
+        render: () => import('#views/VoxpopEpisode'),
+        props: {},
+    },
+    wrapperComponent: Auth,
+    context: {
+        title: 'Voxpop Episodes',
+        visibility: 'is-authenticated',
+    },
+});
+
 /*
 const userManagement = customWrapRoute({
     parent: homeLayout,
@@ -301,6 +328,8 @@ const wrappedRoutes = {
     reports,
     podcast,
     youtubeVideos,
+    voxpopSeasons,
+    voxpopEpisodes,
     // userActivation,
     // editProfile,
     // forgotPassword,
