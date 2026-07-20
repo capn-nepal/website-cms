@@ -7,6 +7,17 @@
     box-shadow: 0px 4px 4px 0px rgba(227, 227, 227, 0.25);
     background-color: var(--cms-ui-color-white-card);
     padding: var(--cms-ui-spacing-sm) var(--cms-ui-spacing-md);
+    
+    .heading {
+        display: flex;
+        align-items: center;
+        color: var(--cms-ui-color-blue-700);
+        .organization{
+            width: 40px;
+            height: auto; 
+        }
+    }
+  
 }
 
 .dropdown {
@@ -16,15 +27,7 @@
 .icons {
     font-size:var(--cms-ui-font-size-3xl);
 }
-.edit-profile {
-    padding: var(--cms-ui-spacing-sm);
-    text-decoration: none;
-    color: var(--cms-ui-primary-text-color);
-    font-weight: var(--cms-ui-font-weight-bold);
-    &:hover {
-        background-color: var(--cms-ui-color-background);
-    }
-}
+
 .logout-button {
     width: 100%;
     &:hover {

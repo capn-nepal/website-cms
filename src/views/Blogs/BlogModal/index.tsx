@@ -76,9 +76,7 @@ function BlogModal(props: Props) {
         validate,
     } = useForm(formSchema, { value: defaultFormValues });
 
-    const handleSubmitSuccess = useCallback((formValues: PartialFormType) => {
-        console.info('Form submitted:', formValues);
-
+    const handleSubmitSuccess = useCallback(() => {
         if (onSuccess) {
             onSuccess();
         }
@@ -112,8 +110,8 @@ function BlogModal(props: Props) {
                         Cancel
                     </Button>
                     <Button
+                        className={styles.saveButton}
                         name="save"
-                        variant="primary"
                         onClick={handleSubmit}
                         disabled={pristine}
                     >

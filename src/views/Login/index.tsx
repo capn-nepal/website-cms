@@ -25,6 +25,9 @@ import {
     TextInput,
 } from '@togglecorp/toggle-ui';
 
+import loginCoverImage from '#assets/loginCoverImage.jpg';
+import Container from '#components/Container';
+import Heading from '#components/Heading';
 import Page from '#components/Page';
 import UserContext from '#contexts/user';
 import {
@@ -33,6 +36,7 @@ import {
     LoginMutationVariables,
 } from '#generated/types/graphql';
 import useAlert from '#hooks/useAlert';
+import { transformToFormError } from '#utils/errorTransform';
 
 import styles from './styles.module.css';
 
@@ -95,7 +99,6 @@ export function Component() {
     } = useForm(formSchema, { value: defaultFormValue });
 
     const fieldError = getErrorObject(error);
-
     const [
         triggerLogin,
         { loading: loginPending },
@@ -104,25 +107,28 @@ export function Component() {
         {
             onCompleted: (loginResponse) => {
                 const response = loginResponse?.login;
-                if (!response || !response.result) {
+                if (!response) {
                     return;
                 }
 
                 if (response.ok) {
-                    setUser({
-                        id: response.result.id,
-                        firstName: response.result.firstName,
-                        lastName: response.result.lastName,
-                        email: response.result?.email,
-                    });
+                    if (response.result) {
+                        setUser({
+                            id: response.result.id,
+                            firstName: response.result.firstName,
+                            lastName: response.result.lastName,
+                            email: response.result.email,
+                        });
+                    }
                     alert.show(
                         'Logged in successfully!',
                         { variant: 'success' },
                     );
                     navigate('/');
                 } else {
-                    const errorMessages = response?.errors
-                        ?.map((errors: { messages: string; }) => errors.messages)
+                    setError(transformToFormError(response.errors));
+                    const errorMessages = response.errors
+                        ?.map((err: { messages: string; }) => err.messages)
                         .filter(isDefined)
                         .join(', ');
                     alert.show(errorMessages, { variant: 'danger' });
@@ -157,41 +163,70 @@ export function Component() {
     ]);
 
     return (
-        <Page
-            className={styles.login}
-        >
-            <form
-                className={styles.form}
-                onSubmit={handleFormSubmit}
+        <Page>
+            <Container
+                className={styles.banner}
             >
-                <div className={styles.fields}>
+                <div>
+                    <div className={styles.backgroundLayer}>
+                        <img
+                            className={styles.image}
+                            src={loginCoverImage}
+                            alt="login"
+                        />
+                    </div>
+                    <div className={styles.content}>
+                        <Heading
+                            level={1}
+                        >
+                            CAPN-CMS
+                        </Heading>
+                        <div className={styles.description}>
+                            Login to access the CAPN-CMS dashboard,
+                            <br />
+                            Manage content, and securely work with our team
+                        </div>
+                    </div>
+                </div>
+            </Container>
+
+            <Container
+                showHeader
+                className={styles.formContainer}
+                heading="USER LOGIN"
+                childrenContainerClassName={styles.formContent}
+            >
+                <form
+                    className={styles.form}
+                    onSubmit={createSubmitHandler(validate, setError, handleFormSubmit)}
+                >
                     <TextInput
                         name="email"
-                        label="Email"
-                        value={formValue.email}
+                        label="Email*"
+                        placeholder="Enter email"
                         onChange={setFieldValue}
+                        value={formValue?.email}
                         error={fieldError?.email}
                         autoFocus
                     />
                     <PasswordInput
                         name="password"
-                        label="Password"
-                        value={formValue.password}
-                        error={fieldError?.password}
+                        label="Password*"
+                        placeholder="Enter password"
                         onChange={setFieldValue}
+                        value={formValue?.password}
+                        error={fieldError?.password}
                     />
-                </div>
-                <div className={styles.actions}>
                     <Button
-                        name={undefined}
-                        type="submit"
-                        onClick={handleFormSubmit}
+                        className={styles.loginButton}
                         disabled={pristine || loginPending}
+                        type="submit"
+                        name="login"
                     >
-                        Login
+                        Submit
                     </Button>
-                </div>
-            </form>
+                </form>
+            </Container>
         </Page>
     );
 }

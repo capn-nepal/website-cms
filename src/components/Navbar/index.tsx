@@ -14,6 +14,7 @@ import {
 } from '@togglecorp/fujs';
 import { Avatar } from '@togglecorp/toggle-ui';
 
+import organizationLogo from '#assets/organizationLogo.png';
 import DropdownMenu from '#components/DropdownMenu';
 import DropdownMenuItem from '#components/DropdownMenuItem';
 import Heading from '#components/Heading';
@@ -61,8 +62,16 @@ function Navbar(props: Props) {
 
     return (
         <nav className={_cs(styles.navbar, className)}>
-            <Heading level={5}>
-                CMS
+            <Heading
+                level={4}
+                className={styles.heading}
+            >
+                <img
+                    className={styles.organization}
+                    alt="OrganizationLogo"
+                    src={organizationLogo}
+                />
+                -CMS
             </Heading>
             <DropdownMenu
                 className={styles.dropdown}
@@ -70,7 +79,7 @@ function Navbar(props: Props) {
                 icons={(
                     <Avatar
                         className={styles.icons}
-                        alt={userAuth?.firstName || ''}
+                        alt={userAuth?.email || ''}
                     />
                 )}
             >
@@ -82,13 +91,6 @@ function Navbar(props: Props) {
                         Login
                     </Link>
                 )}
-                <DropdownMenuItem
-                    className={styles.editProfile}
-                    type="link"
-                    to="edit-profile"
-                >
-                    Edit Profile
-                </DropdownMenuItem>
                 {isDefined(userAuth) && (
                     <DropdownMenuItem
                         className={styles.logoutButton}
